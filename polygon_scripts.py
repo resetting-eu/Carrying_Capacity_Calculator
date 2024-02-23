@@ -25,7 +25,12 @@ buildings = crowding_db["buildings"]
 water = crowding_db["water"]
 roads = crowding_db["roads"]
 footways = crowding_db["footways"]
+railways = crowding_db["railways"]
+bridges = crowding_db["bridges"]
+
+# Polygonized lines
 road_polygons = crowding_db["road_polygons"]
+rail_polygons = crowding_db["rail_polygons"]
 
 sensors = crowding_db["sensors"]
 crowding_polygons = crowding_db["crowding_polygons"]
@@ -74,33 +79,18 @@ def create_street_segments():
 
 def calc_polygon_difference(polygon, subtracting_polygons):
     diff_polygon = polygon
-
-    i = 0
-    for subtracting_polygon in subtracting_polygons:
-        diff_polygon = difference(diff_polygon, subtracting_polygon)
-        i += 1
-        if i > 2:
-            break
+    if len(subtracting_polygons) > 0:
+        buffered_polygons = add_buffer_to_polygons(subtracting_polygons, 0.05)
+        for subtracting_polygon in buffered_polygons:
+            diff_polygon = difference(diff_polygon, subtracting_polygon)
     return diff_polygon
 
 
-def remove_duplicate_points(multipolygon):
-    coordinates = multipolygon["geometry"]["coordinates"]
-    for polygon in coordinates:
-        rings_to_remove = []
-        for ring in polygon:
-            to_remove = []
-            for i in range(len(ring) - 1):
-                point = ring[i]
-                point2 = ring[i + 1]
-                if point == point2:
-                    to_remove.append(point2)
-            for point in to_remove:
-                ring.remove(point)
-            if len(ring) < 3:
-                rings_to_remove.append(ring)
-        for ring in rings_to_remove:
-            polygon.remove(ring)
+def calc_polygon_difference_bulk(polygon, subtracting_polygons):
+    diff_union = union(FeatureCollection(subtracting_polygons))
+    diff_union = add_buffer_to_polygons([diff_union], 0.05)
+    diff_polygon = difference(polygon, diff_union[0])
+    return diff_polygon
 
 
 def create_walkable_area_polygons():
@@ -130,18 +120,60 @@ def create_walkable_area_polygons():
                 }
             }
         }))
-        unusable_polygons = intersecting_buildings + intersecting_water_bodies + intersecting_roads
+        intersecting_railways = list(rail_polygons.find({
+            "geometry": {
+                "$geoIntersects": {
+                    "$geometry": cell["geometry"]
+                }
+            }
+        }))
+        intersecting_bridges = list(bridges.find({
+            "geometry": {
+                "$geoIntersects": {
+                    "$geometry": cell["geometry"]
+                }
+            }
+        }))
 
-        unusable_polygon_union = union(FeatureCollection(unusable_polygons))
+        intersecting_buildings = add_buffer_to_polygons(intersecting_buildings, 0.005)
+
+        intersecting_water_bodies = add_buffer_to_polygons(intersecting_water_bodies, 1)
+
+        water_with_bridges = []
+        for w in intersecting_water_bodies:
+            water_with_bridges.append(calc_polygon_difference(w, intersecting_bridges))
+
+        low_level_unusable_polygons = intersecting_buildings + water_with_bridges
+
+        high_level_unusable_polygons = intersecting_roads + intersecting_railways
+
+        unusable_polygon_union = union(FeatureCollection(low_level_unusable_polygons))
         print(type(unusable_polygon_union))
-        unusable_polygon_union = add_buffer_to_polygons([unusable_polygon_union], 0.10)
-        usable_area_polygon = difference(cell, unusable_polygon_union[0])
+
+        '''if len(intersecting_bridges) > 0:
+            intersecting_bridges = add_buffer_to_polygons(intersecting_bridges, 0.05)
+            unusable_polygon_union = calc_polygon_difference_bulk(unusable_polygon_union, intersecting_bridges)'''
+
+        feature_collection = FeatureCollection(high_level_unusable_polygons)
+        feature_collection.features.append(unusable_polygon_union)
+
+        unusable_polygon_union = union(feature_collection)
+
+        #unusable_polygon_union = add_buffer_to_polygons([unusable_polygon_union], 0.05)
+        #usable_area_polygon = difference(cell, unusable_polygon_union[0])
+        print(type(unusable_polygon_union))
+        usable_area_polygon = calc_polygon_difference_bulk(cell, [unusable_polygon_union])
+
+        #TODO Add bridge polygons (with buffer maybe)
+        # If bridge polygon has footway or bicycle way, add to walkable area (minus road area)
+        # Append footways after
 
         usable_areas_list.append(usable_area_polygon)
 
     usable_areas.insert_many(usable_areas_list)
     # f = open("crowding_polygons_with_usable_areas.json", "w")
     # f.write(json.dumps(cells))
+
 
 def check_polygons_usable_area():
     cells = list(crowding_polygons.find({}))
@@ -209,13 +241,14 @@ def dump_collection(collection):
     f = open("segments.json", "w")
     f.write(json.dumps(segments))
 
+# Polygonization
+
 
 def create_road_polygons():
     road_polygons.delete_many({})
     streets = list(roads.find())
     for s in streets:
         del s["_id"]
-    count = 0
     roads_df = gp.GeoDataFrame(streets)
     roads_df["geometry"] = roads_df["geometry"].apply(shape)
     roads_df = roads_df.set_geometry("geometry").set_crs("WGS84")
@@ -227,7 +260,25 @@ def create_road_polygons():
     road_polygons.insert_many(roads_dict["features"])
 
 
+def create_railway_polygons():
+    AVG_RAIL_WIDTH = 3
+    rails = list(railways.find())
+    for s in rails:
+        del s["_id"]
+    print("Creating buffered polygons...")
+    polygons = add_buffer_to_polygons(rails, AVG_RAIL_WIDTH)
+    print("Inserting polygons...")
+
+    rail_polygons.delete_many({})
+    rail_polygons.insert_many(polygons)
+
+
 def add_buffer_to_polygons(polygons, buffer):
+    for p in polygons:
+        if "_id" in p:
+            del p["_id"]
+    if len(polygons) == 0:
+        return polygons
     roads_df = gp.GeoDataFrame(polygons)
     roads_df["geometry"] = roads_df["geometry"].apply(shape)
     roads_df = roads_df.set_geometry("geometry").set_crs("WGS84")
@@ -237,6 +288,8 @@ def add_buffer_to_polygons(polygons, buffer):
     roads_json = roads_df.to_json()
     roads_dict = json.loads(roads_json)
     return roads_dict["features"]
+
+# OSM COLLECTION FILTERING/CREATION
 
 
 def create_buildings_collection():
@@ -263,11 +316,10 @@ def create_water_collection():
     water_list = list(osm.find(
         {
             "geometry.type": {"$regex": "Polygon"},
-            "$or": [
-                {"properties.natural": "water"},
-            ],
+            "properties.natural": "water",
         }
     ))
+    print(f"Water collection size: {len(water_list)}")
     water.delete_many({})
     water.insert_many(water_list)
 
@@ -287,7 +339,32 @@ def create_footways_collection():
     footways.delete_many({})
     footways.insert_many(footway_list)
 
-def create_tram_way_polygons():
+
+def create_railway_collection():
+    railway_list = list(osm.find(
+        {"$and":
+            [
+                {"properties.railway": {"$exists": True}},
+                {"properties.railway": {"$ne": "razed"}},
+                {"geometry.type": "LineString"},
+            ]
+        }
+    ))
+    print(f"Number of railways: {len(railway_list)}")
+    railways.delete_many({})
+    railways.insert_many(railway_list)
+
+
+def create_bridges_collection():
+    bridges_list = list(osm.find(
+        {
+            "geometry.type": {"$regex": "Polygon"},
+            "properties.man_made": "bridge",
+        }
+    ))
+    bridges.delete_many({})
+    bridges.insert_many(bridges_list)
+
 
 def create_roads_collection():
     average_lane_width = 3  # METERS
@@ -302,6 +379,7 @@ def create_roads_collection():
                 {"properties.highway": {"$ne": "footway"}},
                 {"properties.highway": {"$ne": "steps"}},
                 {"properties.highway": {"$ne": "cycleway"}},
+                {"properties.highway": {"$ne": "path"}},
                 {"geometry.type": "LineString"},
             ]
         }
@@ -310,11 +388,12 @@ def create_roads_collection():
     for road in roads_list:
 
         num_lanes = int(road.get("properties").get("lanes", 1))
-        est_width = num_lanes * average_lane_width
+        num_bus_lanes = int(road.get("properties").get("lanes:bus", 0))
+        est_width = (num_lanes + num_bus_lanes) * average_lane_width
 
         # ---- PARKING ---------
         has_parking_data = False
-        #TODO: Include tram lines
+
         if "parking:lane:left" in road:
             has_parking_data = True
             if road["parking:lane:left"] == "parallel":
@@ -333,75 +412,88 @@ def create_roads_collection():
                 est_width += parallel_parking_width * 2
             else:
                 est_width += diagonal_parking_width * 2
+        if "parking:lane:left" in road:
+            has_parking_data = True
+            if road["parking:lane:left"] == "parallel":
+                est_width += parallel_parking_width
+            else:
+                est_width += diagonal_parking_width
 
         road["est_width"] = est_width
 
     roads.delete_many({})
     roads.insert_many(roads_list)
 
+# "Poligonization" functions
+
 
 def create_geo_indexes():
     buildings.create_index([("geometry", "2dsphere")])
     water.create_index([("geometry", "2dsphere")])
     roads.create_index([("geometry", "2dsphere")])
-    road_polygons.create_index([("geometry", "2dsphere")])
     footways.create_index([("geometry", "2dsphere")])
+    railways.create_index([("geometry", "2dsphere")])
+    bridges.create_index([("geometry", "2dsphere")])
+
+    road_polygons.create_index([("geometry", "2dsphere")])
+    rail_polygons.create_index([("geometry", "2dsphere")])
 
 
 def create_osm_collections():
     create_buildings_collection()
     create_water_collection()
     create_roads_collection()
+    create_footways_collection()
+    create_bridges_collection()
+    create_railway_collection()
+
     create_road_polygons()
+    create_railway_polygons()
 
 
-def dump_collection_in_bbox(collection, filename):
+def dump_collection_in_bounds(collection, bounds_file, filename):
+    f = open(f"bounds/{bounds_file}.json")
+    bounds = json.load(f)
     filtered_collection = list(collection.find({
         "geometry": {
             "$geoIntersects": {
-                "$geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [
-                                144.97156538400452,
-                                -37.807191939942015
-                            ],
-                            [
-                                144.95045026362016,
-                                -37.81277888955562
-                            ],
-                            [
-                                144.9547532348268,
-                                -37.82204193574974
-                            ],
-                            [
-                                144.97582577949544,
-                                -37.81600039405557
-                            ],
-                            [
-                                144.97156538400452,
-                                -37.807191939942015
-                            ]
-                        ]
-                    ],
-                }
+                "$geometry": bounds["geometry"]
             }
         }
     }))
+
     for feature in filtered_collection:
         del feature["_id"]
-    f = open(filename, "w")
+
+    f = open(f"dumps/{filename}.json", "w")
     feature_collection = FeatureCollection(filtered_collection)
     f.write(json.dumps(feature_collection))
 
 
+def filter_collection_in_bounds(collection, bounds_file):
+    f = open(f"bounds/{bounds_file}.json")
+    bounds = json.load(f)
+    filtered_collection = list(collection.find({
+        "geometry": {
+            "$geoIntersects": {
+                "$geometry": bounds["geometry"]
+            }
+        }
+    }))
+
+    collection.delete_many({})
+    collection.insert_many({})
+
+
 if __name__ == '__main__':
-    pass
     # create_osm_collections()
     # create_geo_indexes()
     # create_crowding_polygons_from_sensors()
     # check_polygons_usable_area()
+    # create_water_collection()
     create_walkable_area_polygons()
-    # create_footways_collection()
-    # dump_collection_in_bbox(roads, "roads.geojson")
+
+    # create_railway_collection()
+    # create_railway_polygons()
+
+    #dump_collection_in_bounds(rail_polygons, "melbourne_municipality", "railway_polygons")
