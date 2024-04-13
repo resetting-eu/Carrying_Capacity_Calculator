@@ -31,6 +31,8 @@ module.exports = function (context) {
         .style("top", "14px")
         .text("Calculating...");
 
+      context.metadata.areas[0] = "calculating";
+
       fetch("http://localhost:5000/usable_area", { // TODO handle errors
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -39,6 +41,7 @@ module.exports = function (context) {
       .then(r => r.json())
       .then(j => {
         const meters = j["usable_area"];
+        context.metadata.areas[0] = meters;
         doubleCell
           .attr("rowspan", null)
           .text(meters.toFixed(2));

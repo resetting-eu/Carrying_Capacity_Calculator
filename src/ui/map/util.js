@@ -355,13 +355,29 @@ function bindPopup(e, context, writable) {
         '</td></tr>' +
         '<tr><td>Sq. Miles</td><td>' +
         (area(feature.geometry) / 2589990).toFixed(2) +
-        '</td></tr>' +
-        '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
-        // walkable_area.toFixed(2) +
-        // 'N/A' +
-        '<button id="calculate" class="major">Calculate</button>' +
-        '</td></tr>' +
-        '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
+        '</td></tr>';
+      const walkable_meters = context.metadata.areas[0];
+      if(walkable_meters === undefined) {
+        info +=
+          '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
+          '<button id="calculate" class="major">Calculate</button>' +
+          '</td></tr>' +
+          '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
+      } else if(walkable_meters === "calculating") {
+        info +=
+          '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
+          '<span class="center" style="width: 100%; top: 14px>Calculating...</span>' +
+          '</td></tr>' +
+          '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
+      } else {
+        info +=
+          '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td>' +
+          walkable_meters.toFixed(2) +
+          '</td></tr>' +
+          '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td><td>' +
+          (walkable_meters / 0.092903).toFixed(2) +
+          '</td></tr>';
+      }
     }
     info += '</table>';
   }
