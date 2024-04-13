@@ -458,6 +458,7 @@ module.exports = function (context, readonly) {
         });
 
         context.map.addControl(overlay);
+        context.map.deck = overlay;
 
         geojsonToLayer(context, writable);
 
@@ -558,7 +559,24 @@ module.exports = function (context, readonly) {
       if (obj.map) {
         geojsonToLayer(context, writable);
       }
-      console.log("change.map");
+      console.log("change.map"); // TODO remove line
+      const walkableFeatureMetadata = context.metadata.areas[0]; // TODO work with multiple feats
+      if(walkableFeatureMetadata !== undefined) {
+        const walkableFeature = walkableFeatureMetadata.feature;
+        const data = {"features": [walkableFeature]}
+        const dataPoints = featuresToPoints(data, 0.2);
+        context.map.deck.setProps({
+          layers: [
+            new ScatterplotLayer({
+              id: 'ScatterplotLayer',
+              data: dataPoints,
+              getPosition: p => p,
+              getRadius: 2,
+              getFillColor: [255, 0, 0, 100]
+            })
+          ]
+        });
+      }
     });
   }
 

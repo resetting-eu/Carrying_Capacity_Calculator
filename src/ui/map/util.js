@@ -356,7 +356,7 @@ function bindPopup(e, context, writable) {
         '<tr><td>Sq. Miles</td><td>' +
         (area(feature.geometry) / 2589990).toFixed(2) +
         '</td></tr>';
-      const walkable_meters = context.metadata.areas[0];
+      const walkable_meters = context.metadata.areas[0]?.meters;
       if(walkable_meters === undefined) {
         info +=
           '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
@@ -490,6 +490,42 @@ function bindPopup(e, context, writable) {
     .addTo(context.map);
 }
 
+function multiPolygonToPolygons(multiPolygonFeature) {
+  if (multiPolygonFeature.type !== 'Feature' || multiPolygonFeature.geometry.type !== 'MultiPolygon') {
+    console.error('Input feature is not a MultiPolygon');
+    return [];
+  }
+
+  const multiPolygonCoordinates = multiPolygonFeature.geometry.coordinates;
+  const polygonFeatures = multiPolygonCoordinates.map(polygonCoords => {
+    return {
+      type: 'Feature',
+      properties: multiPolygonFeature.properties,
+      geometry: {
+        type: 'Polygon',
+        coordinates: polygonCoords
+      }
+    };
+  });
+
+  return polygonFeatures;
+}
+
+function checkContains(feat1, feat2) {
+  const type = feat1.geometry.type;
+  if(type === "MultiPolygon") {
+    const polygons = multiPolygonToPolygons(feat1);
+    for(const polygon of polygons) {
+      if(booleanContains(polygon, feat2)) {
+        return true;
+      }
+    }
+    return false;
+  } else {
+    return booleanContains(feat1, feat2);
+  }
+}
+
 function featuresToPoints(features, density) {
   const points = [];
   for(const feat of features["features"]) {
@@ -500,7 +536,7 @@ function featuresToPoints(features, density) {
     while(featPointCount < n) {
       const randomPoints = randomPoint(n - featPointCount, {bbox: featBbox});
       for(const pointFeat of randomPoints["features"]) {
-        if(booleanContains(feat, pointFeat)) {
+        if(checkContains(feat, pointFeat)) {
           points.push(pointFeat["geometry"]["coordinates"]);
           ++featPointCount;
         }

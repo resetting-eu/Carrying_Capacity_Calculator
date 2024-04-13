@@ -1,3 +1,5 @@
+const area = require('@turf/area').default;
+
 module.exports = function (context) {
   return function (e, id) {
     const sel = d3.select(e.target._content);
@@ -40,8 +42,8 @@ module.exports = function (context) {
       })
       .then(r => r.json())
       .then(j => {
-        const meters = j["usable_area"];
-        context.metadata.areas[0] = meters;
+        const meters = area(j);
+        context.metadata.areas[0] = {meters, feature: j}; // TODO use correct id
         doubleCell
           .attr("rowspan", null)
           .text(meters.toFixed(2));
