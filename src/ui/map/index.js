@@ -5,13 +5,19 @@ const geojsonRewind = require('@mapbox/geojson-rewind');
 const MapboxDraw = require('@mapbox/mapbox-gl-draw');
 const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
 
+const {MapboxOverlay} = require('@deck.gl/mapbox');
+// const {GeoJsonLayer} = require('@deck.gl/layers'); // REMOVE!
+const {ScatterplotLayer} = require('@deck.gl/layers');
+
+const data = require("./my_layer_data");
+
 const DrawLineString = require('../draw/linestring');
 const DrawRectangle = require('../draw/rectangle');
 const DrawCircle = require('../draw/circle');
 const SimpleSelect = require('../draw/simple_select');
 const ExtendDrawBar = require('../draw/extend_draw_bar');
 const { EditControl, SaveCancelControl, TrashControl } = require('./controls');
-const { geojsonToLayer, bindPopup } = require('./util');
+const { geojsonToLayer, bindPopup, featuresToPoints } = require('./util');
 const styles = require('./styles');
 const {
   DEFAULT_STYLE,
@@ -21,6 +27,8 @@ const {
   DEFAULT_SATELLITE_FEATURE_COLOR
 } = require('../../constants');
 const drawStyles = require('../draw/styles');
+
+const MyLayer = require("./my_layer");
 
 let writable = false;
 let drawing = false;
@@ -388,6 +396,69 @@ module.exports = function (context, readonly) {
           filter: ['==', ['geometry-type'], 'LineString']
         });
 
+        // context.map.addLayer(MyLayer);
+
+        const overlayData = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {},
+              "geometry": {
+                "coordinates": [
+                  [
+                    [
+                      -9.143770102545375,
+                      38.73630233928094
+                    ],
+                    [
+                      -9.143770102545375,
+                      38.73488410589755
+                    ],
+                    [
+                      -9.140938982651903,
+                      38.73488410589755
+                    ],
+                    [
+                      -9.140938982651903,
+                      38.73630233928094
+                    ],
+                    [
+                      -9.143770102545375,
+                      38.73630233928094
+                    ]
+                  ]
+                ],
+                "type": "Polygon"
+              }
+            }
+          ]
+        };
+
+        const overlayPoints = featuresToPoints(overlayData, 0.1);
+        const dataPoints = featuresToPoints(data, 0.2);
+
+        const overlay = new MapboxOverlay({
+          layers: [
+            // new GeoJsonLayer({
+            //   id: 'geoJsonLayer',
+            //   data: overlayData,
+            //   filled: true,
+            //   getLineWidth: 5,
+            //   getFillColor: [0, 255, 0, 100]
+            // })
+            new ScatterplotLayer({
+              id: 'ScatterplotLayer',
+              data: dataPoints,
+              getPosition: p => p,
+              getRadius: 2,
+              getFillColor: [255, 0, 0, 100]
+            })
+          ]
+        });
+
+        context.map.addControl(overlay);
+
         geojsonToLayer(context, writable);
 
         context.data.set({
@@ -487,6 +558,7 @@ module.exports = function (context, readonly) {
       if (obj.map) {
         geojsonToLayer(context, writable);
       }
+      console.log("change.map");
     });
   }
 

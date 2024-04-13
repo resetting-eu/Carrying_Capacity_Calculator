@@ -10,6 +10,12 @@
   max-height: 189px;
 }
 
+.metadata button {
+  position: relative;
+  top: 14px;
+  width: 100%;
+}
+
 .marker-properties {
   display: block;
 }
@@ -43,6 +49,10 @@
 .marker-properties tr:nth-child(even) td,
 .metadata tr:nth-child(even) td {
   background-color: #f7f7f7;
+}
+
+.geojsonio-feature {
+  z-index: 100;
 }
 
 .geojsonio-feature .mapboxgl-popup-content {

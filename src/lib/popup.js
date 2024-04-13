@@ -14,6 +14,40 @@ module.exports = function (context) {
 
     sel.selectAll('.delete-invert').on('click', removeFeature);
 
+    sel.select('#calculate').on('click', calculateWalkableArea);
+
+    function calculateWalkableArea() {
+      const data = context.data.get('map');
+      const feature = data.features[id];
+
+      const doubleCell = sel.select("#calc-row-m > td[rowspan=\"2\"]");
+      doubleCell
+        .select("button")
+        .remove();
+      doubleCell
+        .append("span")
+        .classed("center", true) // TODO fix centering
+        .style("width", "100%")
+        .style("top", "14px")
+        .text("Calculating...");
+
+      fetch("http://localhost:5000/usable_area", { // TODO handle errors
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(feature)
+      })
+      .then(r => r.json())
+      .then(j => {
+        const meters = j["usable_area"];
+        doubleCell
+          .attr("rowspan", null)
+          .text(meters.toFixed(2));
+        sel.select("#calc-row-ft")
+          .append("td")
+          .text((meters / 0.092903).toFixed(2));
+      });
+    }
+
     function clickClose() {
       e.target._onClose();
     }

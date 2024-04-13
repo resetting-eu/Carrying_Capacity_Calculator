@@ -3,6 +3,8 @@ const escape = require('escape-html');
 const length = require('@turf/length').default;
 const area = require('@turf/area').default;
 
+const {bbox, randomPoint, booleanContains} = require('@turf/turf');
+
 const popup = require('../../lib/popup');
 const ClickableMarker = require('./clickable_marker');
 const zoomextent = require('../../lib/zoomextent');
@@ -337,7 +339,7 @@ function bindPopup(e, context, writable) {
         '<tr><td>Longitude</td><td>' +
         feature.geometry.coordinates[0].toFixed(4) +
         '</td></tr>';
-    } else if (feature.geometry.type === 'Polygon') {
+    } else if (feature.geometry.type === 'Polygon') {      
       info +=
         '<tr><td>Sq. Meters</td><td>' +
         area(feature.geometry).toFixed(2) +
@@ -353,7 +355,13 @@ function bindPopup(e, context, writable) {
         '</td></tr>' +
         '<tr><td>Sq. Miles</td><td>' +
         (area(feature.geometry) / 2589990).toFixed(2) +
-        '</td></tr>';
+        '</td></tr>' +
+        '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
+        // walkable_area.toFixed(2) +
+        // 'N/A' +
+        '<button id="calculate" class="major">Calculate</button>' +
+        '</td></tr>' +
+        '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
     }
     info += '</table>';
   }
@@ -466,9 +474,30 @@ function bindPopup(e, context, writable) {
     .addTo(context.map);
 }
 
+function featuresToPoints(features, density) {
+  const points = [];
+  for(const feat of features["features"]) {
+    const featBbox = bbox(feat);
+    const a = area(feat);
+    const n = Math.round(a * density);
+    let featPointCount = 0;
+    while(featPointCount < n) {
+      const randomPoints = randomPoint(n - featPointCount, {bbox: featBbox});
+      for(const pointFeat of randomPoints["features"]) {
+        if(booleanContains(feat, pointFeat)) {
+          points.push(pointFeat["geometry"]["coordinates"]);
+          ++featPointCount;
+        }
+      }
+    }
+  }
+  return points;
+}
+
 module.exports = {
   addIds,
   addMarkers,
   geojsonToLayer,
-  bindPopup
+  bindPopup,
+  featuresToPoints
 };
