@@ -1,4 +1,6 @@
 const area = require('@turf/area').default;
+const { union } = require('@turf/turf');
+var hash = require('object-hash');
 
 module.exports = function (context) {
   return function (e, id) {
@@ -33,7 +35,8 @@ module.exports = function (context) {
         .style("top", "14px")
         .text("Calculating...");
 
-      context.metadata.areas[0] = "calculating";
+        const id_hash = hash(feature, {excludeKeys: k => k === "properties"});
+        context.metadata.areas[id_hash] = "calculating";
 
       fetch("http://localhost:5000/usable_area", { // TODO handle errors
         method: "POST",
@@ -43,7 +46,12 @@ module.exports = function (context) {
       .then(r => r.json())
       .then(j => {
         const meters = area(j);
-        context.metadata.areas[0] = {meters, feature: j}; // TODO use correct id
+        context.metadata.areas[id_hash] = meters;
+        if(context.metadata.union === null) {
+          context.metadata.union = j;
+        } else {
+          context.metadata.union = union(context.metadata.union, j);
+        }
         doubleCell
           .attr("rowspan", null)
           .text(meters.toFixed(2));

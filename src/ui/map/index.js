@@ -6,10 +6,6 @@ const MapboxDraw = require('@mapbox/mapbox-gl-draw');
 const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
 
 const {MapboxOverlay} = require('@deck.gl/mapbox');
-// const {GeoJsonLayer} = require('@deck.gl/layers'); // REMOVE!
-const {ScatterplotLayer} = require('@deck.gl/layers');
-
-const data = require("./my_layer_data");
 
 const DrawLineString = require('../draw/linestring');
 const DrawRectangle = require('../draw/rectangle');
@@ -28,8 +24,6 @@ const {
   DEFAULT_SATELLITE_FEATURE_COLOR
 } = require('../../constants');
 const drawStyles = require('../draw/styles');
-
-const MyLayer = require("./my_layer");
 
 let writable = false;
 let drawing = false;

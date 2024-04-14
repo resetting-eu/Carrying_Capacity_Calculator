@@ -1,12 +1,13 @@
 const { ScatterplotLayer } = require('@deck.gl/layers');
 const { featuresToPoints } = require('./util');
 
+// TODO ponderar passar isto para util.js em vez de ter este módulo
 function refreshOverlay(context) {
-  const walkableFeatureMetadata = context.metadata.areas[0]; // TODO work with multiple feats
-  if(walkableFeatureMetadata !== undefined) {
-    const walkableFeature = walkableFeatureMetadata.feature;
-    const data = {"features": [walkableFeature]}
-    const dataPoints = featuresToPoints(data, 0.2);
+  if(context.metadata.union === null) {
+    context.map.deck.setProps({layers: []});
+  } else {
+    const featureCollection = {features: [context.metadata.union], type: "FeatureCollection"};
+    const dataPoints = featuresToPoints(featureCollection, 0.2);
     context.map.deck.setProps({
     layers: [
         new ScatterplotLayer({
@@ -16,8 +17,7 @@ function refreshOverlay(context) {
         getRadius: 2,
         getFillColor: [255, 0, 0, 100]
       })
-    ]
-    });
+    ]});  
   }
 }
 
