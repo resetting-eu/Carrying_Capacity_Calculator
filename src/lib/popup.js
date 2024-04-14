@@ -50,6 +50,8 @@ module.exports = function (context) {
         sel.select("#calc-row-ft")
           .append("td")
           .text((meters / 0.092903).toFixed(2));
+
+        context.map.refreshOverlay(context);
       });
     }
 

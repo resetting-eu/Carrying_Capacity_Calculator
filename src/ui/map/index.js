@@ -17,7 +17,8 @@ const DrawCircle = require('../draw/circle');
 const SimpleSelect = require('../draw/simple_select');
 const ExtendDrawBar = require('../draw/extend_draw_bar');
 const { EditControl, SaveCancelControl, TrashControl } = require('./controls');
-const { geojsonToLayer, bindPopup, featuresToPoints } = require('./util');
+const { geojsonToLayer, bindPopup } = require('./util');
+const { refreshOverlay } = require('./overlay');
 const styles = require('./styles');
 const {
   DEFAULT_STYLE,
@@ -396,69 +397,13 @@ module.exports = function (context, readonly) {
           filter: ['==', ['geometry-type'], 'LineString']
         });
 
-        // context.map.addLayer(MyLayer);
-
-        const overlayData = {
-          "type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "properties": {},
-              "geometry": {
-                "coordinates": [
-                  [
-                    [
-                      -9.143770102545375,
-                      38.73630233928094
-                    ],
-                    [
-                      -9.143770102545375,
-                      38.73488410589755
-                    ],
-                    [
-                      -9.140938982651903,
-                      38.73488410589755
-                    ],
-                    [
-                      -9.140938982651903,
-                      38.73630233928094
-                    ],
-                    [
-                      -9.143770102545375,
-                      38.73630233928094
-                    ]
-                  ]
-                ],
-                "type": "Polygon"
-              }
-            }
-          ]
-        };
-
-        const overlayPoints = featuresToPoints(overlayData, 0.1);
-        const dataPoints = featuresToPoints(data, 0.2);
 
         const overlay = new MapboxOverlay({
-          layers: [
-            // new GeoJsonLayer({
-            //   id: 'geoJsonLayer',
-            //   data: overlayData,
-            //   filled: true,
-            //   getLineWidth: 5,
-            //   getFillColor: [0, 255, 0, 100]
-            // })
-            new ScatterplotLayer({
-              id: 'ScatterplotLayer',
-              data: dataPoints,
-              getPosition: p => p,
-              getRadius: 2,
-              getFillColor: [255, 0, 0, 100]
-            })
-          ]
+          layers: []
         });
-
         context.map.addControl(overlay);
         context.map.deck = overlay;
+        context.map.refreshOverlay = refreshOverlay;
 
         geojsonToLayer(context, writable);
 
@@ -560,22 +505,8 @@ module.exports = function (context, readonly) {
         geojsonToLayer(context, writable);
       }
       console.log("change.map"); // TODO remove line
-      const walkableFeatureMetadata = context.metadata.areas[0]; // TODO work with multiple feats
-      if(walkableFeatureMetadata !== undefined) {
-        const walkableFeature = walkableFeatureMetadata.feature;
-        const data = {"features": [walkableFeature]}
-        const dataPoints = featuresToPoints(data, 0.2);
-        context.map.deck.setProps({
-          layers: [
-            new ScatterplotLayer({
-              id: 'ScatterplotLayer',
-              data: dataPoints,
-              getPosition: p => p,
-              getRadius: 2,
-              getFillColor: [255, 0, 0, 100]
-            })
-          ]
-        });
+      if(context.map.refreshOverlay) {
+        context.map.refreshOverlay(context);
       }
     });
   }
