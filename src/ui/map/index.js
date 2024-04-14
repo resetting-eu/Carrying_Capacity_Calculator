@@ -7,6 +7,8 @@ const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
 
 const {MapboxOverlay} = require('@deck.gl/mapbox');
 
+var hash = require('object-hash');
+
 const DrawLineString = require('../draw/linestring');
 const DrawRectangle = require('../draw/rectangle');
 const DrawCircle = require('../draw/circle');
@@ -498,10 +500,27 @@ module.exports = function (context, readonly) {
       if (obj.map) {
         geojsonToLayer(context, writable);
       }
-      console.log("change.map"); // TODO remove line
-      // if(context.map.refreshOverlay) {
-      //   context.map.refreshOverlay(context);
-      // }
+      if(context.map.refreshOverlay) {
+        const features = context.data.get("map").features;
+        const removedIds = [];
+        for(const metadataId of Object.keys(context.metadata.areas)) {
+          let found = false;
+          for(const feature of features) {
+            const dataId = hash(feature, {excludeKeys: k => k === "properties"});
+            if(metadataId === dataId) {
+              found = true;
+              break;
+            }
+          }
+          if(!found) {
+            removedIds.push(metadataId);
+          }
+        }
+
+        if(removedIds && removedIds.length > 0) {
+          context.map.refreshOverlay(context, null, removedIds);
+        }
+      }
     });
   }
 

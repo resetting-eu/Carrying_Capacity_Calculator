@@ -36,7 +36,7 @@ module.exports = function (context) {
         .text("Calculating...");
 
         const id_hash = hash(feature, {excludeKeys: k => k === "properties"});
-        context.metadata.areas[id_hash] = "calculating";
+        context.metadata.areas[id_hash] = {meters: "calculating"};
 
       fetch("http://localhost:5000/usable_area", { // TODO handle errors
         method: "POST",
@@ -46,12 +46,8 @@ module.exports = function (context) {
       .then(r => r.json())
       .then(j => {
         const meters = area(j);
-        context.metadata.areas[id_hash] = meters;
-        if(context.metadata.union === null) {
-          context.metadata.union = j;
-        } else {
-          context.metadata.union = union(context.metadata.union, j);
-        }
+        context.metadata.areas[id_hash] = {feature: j, meters};
+        
         doubleCell
           .attr("rowspan", null)
           .text(meters.toFixed(2));
@@ -59,7 +55,7 @@ module.exports = function (context) {
           .append("td")
           .text((meters / 0.092903).toFixed(2));
 
-        context.map.refreshOverlay(context, feature);
+        context.map.refreshOverlay(context, j, []);
       });
     }
 

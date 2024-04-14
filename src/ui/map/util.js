@@ -358,7 +358,7 @@ function bindPopup(e, context, writable) {
         (area(feature.geometry) / 2589990).toFixed(2) +
         '</td></tr>';
       const id = hash(feature, {excludeKeys: k => k === "properties"});
-      const walkable_meters = context.metadata.areas[id];
+      const walkable_meters = context.metadata.areas[id]?.meters;
       if(walkable_meters === undefined) {
         info +=
           '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
@@ -551,5 +551,6 @@ module.exports = {
   addMarkers,
   geojsonToLayer,
   bindPopup,
-  featureToPoints
+  featureToPoints,
+  checkContains
 };
