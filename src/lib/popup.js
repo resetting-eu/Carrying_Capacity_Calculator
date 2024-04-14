@@ -59,7 +59,7 @@ module.exports = function (context) {
           .append("td")
           .text((meters / 0.092903).toFixed(2));
 
-        context.map.refreshOverlay(context);
+        context.map.refreshOverlay(context, feature);
       });
     }
 

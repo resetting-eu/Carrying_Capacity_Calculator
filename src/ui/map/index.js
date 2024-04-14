@@ -499,9 +499,9 @@ module.exports = function (context, readonly) {
         geojsonToLayer(context, writable);
       }
       console.log("change.map"); // TODO remove line
-      if(context.map.refreshOverlay) {
-        context.map.refreshOverlay(context);
-      }
+      // if(context.map.refreshOverlay) {
+      //   context.map.refreshOverlay(context);
+      // }
     });
   }
 

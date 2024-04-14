@@ -528,20 +528,18 @@ function checkContains(feat1, feat2) {
   }
 }
 
-function featuresToPoints(features, density) {
+function featureToPoints(feat, density) {
   const points = [];
-  for(const feat of features["features"]) {
-    const featBbox = bbox(feat);
-    const a = area(feat);
-    const n = Math.round(a * density);
-    let featPointCount = 0;
-    while(featPointCount < n) {
-      const randomPoints = randomPoint(n - featPointCount, {bbox: featBbox});
-      for(const pointFeat of randomPoints["features"]) {
-        if(checkContains(feat, pointFeat)) {
-          points.push(pointFeat["geometry"]["coordinates"]);
-          ++featPointCount;
-        }
+  const featBbox = bbox(feat);
+  const a = area(feat);
+  const n = Math.round(a * density);
+  let featPointCount = 0;
+  while(featPointCount < n) {
+    const randomPoints = randomPoint(n - featPointCount, {bbox: featBbox});
+    for(const pointFeat of randomPoints["features"]) {
+      if(checkContains(feat, pointFeat)) {
+        points.push(pointFeat["geometry"]["coordinates"]);
+        ++featPointCount;
       }
     }
   }
@@ -553,5 +551,5 @@ module.exports = {
   addMarkers,
   geojsonToLayer,
   bindPopup,
-  featuresToPoints
+  featureToPoints
 };
