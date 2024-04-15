@@ -362,13 +362,13 @@ function bindPopup(e, context, writable) {
       if(walkable_meters === undefined) {
         info +=
           '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
-          '<button id="calculate" class="major">Calculate</button>' +
+          '<button id="calculate" class="walkable-area-center major">Calculate</button>' +
           '</td></tr>' +
           '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
       } else if(walkable_meters === "calculating") {
         info +=
           '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
-          '<span class="center" style="width: 100%; top: 14px">Calculating...</span>' +
+          '<span class="walkable-area-center">Calculating...</span>' +
           '</td></tr>' +
           '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
       } else {

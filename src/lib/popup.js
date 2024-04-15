@@ -29,9 +29,7 @@ module.exports = function (context) {
         .remove();
       doubleCell
         .append("span")
-        .classed("center", true) // TODO fix centering
-        .style("width", "100%")
-        .style("top", "14px")
+        .classed("walkable-area-center", true)
         .text("Calculating...");
 
         const id_hash = featureHash(feature);

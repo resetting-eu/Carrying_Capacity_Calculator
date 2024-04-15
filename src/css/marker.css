@@ -10,10 +10,12 @@
   max-height: 189px;
 }
 
-.metadata button {
+.walkable-area-center {
   position: relative;
   top: 14px;
   width: 100%;
+  text-align: center;
+  display: inline-block;
 }
 
 .marker-properties {
