@@ -1,6 +1,5 @@
 const area = require('@turf/area').default;
-const { union } = require('@turf/turf');
-var hash = require('object-hash');
+const featureHash = require('./feature_hash');
 
 module.exports = function (context) {
   return function (e, id) {
@@ -35,7 +34,7 @@ module.exports = function (context) {
         .style("top", "14px")
         .text("Calculating...");
 
-        const id_hash = hash(feature, {excludeKeys: k => k === "properties"});
+        const id_hash = featureHash(feature);
         context.metadata.areas[id_hash] = {meters: "calculating"};
 
       fetch("http://localhost:5000/usable_area", { // TODO handle errors

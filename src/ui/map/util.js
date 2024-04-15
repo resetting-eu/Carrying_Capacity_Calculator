@@ -2,11 +2,11 @@ const mapboxgl = require('mapbox-gl');
 const escape = require('escape-html');
 const length = require('@turf/length').default;
 const area = require('@turf/area').default;
-var hash = require('object-hash');
 
 const {bbox, randomPoint, booleanContains} = require('@turf/turf');
 
 const popup = require('../../lib/popup');
+const featureHash = require('../../lib/feature_hash');
 const ClickableMarker = require('./clickable_marker');
 const zoomextent = require('../../lib/zoomextent');
 const {
@@ -357,7 +357,7 @@ function bindPopup(e, context, writable) {
         '<tr><td>Sq. Miles</td><td>' +
         (area(feature.geometry) / 2589990).toFixed(2) +
         '</td></tr>';
-      const id = hash(feature, {excludeKeys: k => k === "properties"});
+      const id = featureHash(feature);
       const walkable_meters = context.metadata.areas[id]?.meters;
       if(walkable_meters === undefined) {
         info +=

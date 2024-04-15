@@ -7,13 +7,13 @@ const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
 
 const {MapboxOverlay} = require('@deck.gl/mapbox');
 
-var hash = require('object-hash');
 
 const DrawLineString = require('../draw/linestring');
 const DrawRectangle = require('../draw/rectangle');
 const DrawCircle = require('../draw/circle');
 const SimpleSelect = require('../draw/simple_select');
 const ExtendDrawBar = require('../draw/extend_draw_bar');
+const featureHash = require('../../lib/feature_hash');
 const { EditControl, SaveCancelControl, TrashControl } = require('./controls');
 const { geojsonToLayer, bindPopup } = require('./util');
 const { refreshOverlay } = require('./overlay');
@@ -506,7 +506,7 @@ module.exports = function (context, readonly) {
         for(const metadataId of Object.keys(context.metadata.areas)) {
           let found = false;
           for(const feature of features) {
-            const dataId = hash(feature, {excludeKeys: k => k === "properties"});
+            const dataId = featureHash(feature);
             if(metadataId === dataId) {
               found = true;
               break;
