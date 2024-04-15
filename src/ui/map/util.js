@@ -368,7 +368,7 @@ function bindPopup(e, context, writable) {
       } else if(walkable_meters === "calculating") {
         info +=
           '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
-          '<span class="center" style="width: 100%; top: 14px>Calculating...</span>' +
+          '<span class="center" style="width: 100%; top: 14px">Calculating...</span>' +
           '</td></tr>' +
           '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
       } else {
