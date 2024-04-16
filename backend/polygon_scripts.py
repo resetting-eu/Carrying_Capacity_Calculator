@@ -16,7 +16,8 @@ pp = pprint.PrettyPrinter(indent=1)
 # MONGO CONNECTION INIT
 client = db.MongoClient("mongodb://localhost:27017/")
 
-crowding_db = client["vodafone"]
+# crowding_db = client["vodafone"]
+crowding_db = client["dynamic"]
 
 osm = crowding_db["osm"]
 
@@ -260,8 +261,9 @@ def create_buildings_collection():
                 if area(geojson) > max_area:
                     geometry["coordinates"] = polygon_coordinates
 
-    buildings.insert_many(buildings_list)
-    buildings.delete_many({"properties.layer": "-1"})
+    if len(buildings_list) > 0:
+        buildings.insert_many(buildings_list)
+        buildings.delete_many({"properties.layer": "-1"})
 
 
 def create_water_collection():
@@ -274,7 +276,8 @@ def create_water_collection():
         }
     ))
     water.delete_many({})
-    water.insert_many(water_list)
+    if len(water_list) > 0:
+        water.insert_many(water_list)
 
 
 def create_footways_collection():
@@ -290,7 +293,8 @@ def create_footways_collection():
         }
     ))
     footways.delete_many({})
-    footways.insert_many(footway_list)
+    if len(footway_list) > 0:
+        footways.insert_many(footway_list)
 
 def create_tram_way_polygons():
     pass
