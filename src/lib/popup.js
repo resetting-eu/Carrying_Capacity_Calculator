@@ -35,7 +35,7 @@ module.exports = function (context) {
         const id_hash = featureHash(feature);
         context.metadata.areas[id_hash] = {meters: "calculating"};
 
-      fetch("http://localhost:5000/usable_area", { // TODO handle errors
+      fetch("http://localhost:5000/usable_area", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(feature)
@@ -53,6 +53,19 @@ module.exports = function (context) {
           .text((meters / 0.092903).toFixed(2));
 
         context.map.refreshOverlay(context, j, []);
+      })
+      .catch(_ => {
+        delete context.metadata.areas[id_hash];
+
+        doubleCell
+          .selectAll("*")
+          .remove();
+        doubleCell
+          .append("button")
+          .attr("id", "calculate")
+          .classed("walkable-area-center major", true)
+          .text("Calculate")
+          .on('click', calculateWalkableArea);
       });
     }
 
