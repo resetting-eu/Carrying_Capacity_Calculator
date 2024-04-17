@@ -137,7 +137,10 @@ def create_walkable_area_polygons(cells):
         unusable_polygon_union = union(FeatureCollection(unusable_polygons))
         print(type(unusable_polygon_union))
         unusable_polygon_union = add_buffer_to_polygons([unusable_polygon_union], 0.10)
-        usable_area_polygon = difference(cell, unusable_polygon_union[0])
+        if unusable_polygon_union:
+            usable_area_polygon = difference(cell, unusable_polygon_union[0])
+        else:
+            usable_area_polygon = cell
 
         usable_areas_list.append(usable_area_polygon)
 
@@ -235,6 +238,8 @@ def create_road_polygons():
 
 def add_buffer_to_polygons(polygons, buffer):
     roads_df = gp.GeoDataFrame(polygons)
+    if "geometry" not in roads_df:
+        return None
     roads_df["geometry"] = roads_df["geometry"].apply(shape)
     roads_df = roads_df.set_geometry("geometry").set_crs("WGS84")
     roads_df["geometry"] = roads_df["geometry"].to_crs("EPSG:32633")

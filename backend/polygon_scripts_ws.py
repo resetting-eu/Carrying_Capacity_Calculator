@@ -59,10 +59,11 @@ def insert_new_bbox(new_bbox):
             tags = feature["properties"]["tags"]
             for tag in tags:
                 feature["properties"][tag] = feature["properties"]["tags"][tag]
-    osm.insert_many(new_osm["features"])
-    create_osm_collections()
-    create_geo_indexes()
-    bboxes_collection.insert_one(bbox_to_feature(new_bbox))
+    if len(new_osm["features"]) > 0:
+        osm.insert_many(new_osm["features"])
+        create_osm_collections()
+        create_geo_indexes()
+        bboxes_collection.insert_one(bbox_to_feature(new_bbox))
 
 def bbox_to_feature(bbox):
     min_lon, min_lat, max_lon, max_lat = bbox
