@@ -23,33 +23,22 @@ function multiPolygonToPolygons(multiPolygonFeature) {
   return polygonFeatures;
 }
 
-function checkContains(feat1, feat2) {
-  const type = feat1.geometry.type;
-  if(type === "MultiPolygon") {
-    const polygons = multiPolygonToPolygons(feat1);
-    for(const polygon of polygons) {
-      if(booleanContains(polygon, feat2)) {
-        return true;
-      }
-    }
-    return false;
-  } else {
-    return booleanContains(feat1, feat2);
-  }
-}
-
 function featureToPoints(feat, density) {
   const points = [];
   const featBbox = bbox(feat);
   const a = area(feat);
   const n = Math.round(a * density);
+  const featPolygons = feat.geometry.type === "MultiPolygon" ? multiPolygonToPolygons(feat) : [feat];
   let featPointCount = 0;
   while(featPointCount < n) {
     const randomPoints = randomPoint(n - featPointCount, {bbox: featBbox});
     for(const pointFeat of randomPoints["features"]) {
-      if(checkContains(feat, pointFeat)) {
-        points.push(pointFeat["geometry"]["coordinates"]);
-        ++featPointCount;
+      for(const polygon of featPolygons) {
+        if(booleanContains(polygon, pointFeat)) {
+          points.push(pointFeat["geometry"]["coordinates"]);
+          ++featPointCount;
+          break;
+        }
       }
     }
   }
@@ -59,9 +48,13 @@ function featureToPoints(feat, density) {
 function removePoints(points, newUnion) {
   const newPoints = [];
   if(newUnion) {
+    const newUnionPolygons = newUnion.geometry.type === "MultiPolygon" ? multiPolygonToPolygons(newUnion) : [newUnion];
     for(const p of points) {
-      if(checkContains(newUnion, point(p))) {
-        newPoints.push(p);
+      for(const polygon of newUnionPolygons) {
+        if(booleanContains(polygon, point(p))) {
+          newPoints.push(p);
+          break;
+        }  
       }
     }
   }
