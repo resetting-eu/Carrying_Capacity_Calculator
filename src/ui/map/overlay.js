@@ -1,26 +1,28 @@
-const { ScatterplotLayer } = require('@deck.gl/layers');
-const { difference, union, point } = require('@turf/turf');
+const {MapboxOverlay} = require("@deck.gl/mapbox");
+const {ScatterplotLayer} = require("@deck.gl/layers");
+const {difference, union} = require("@turf/turf");
+
 const {
   WALKABLE_AREA_POINT_DENSITY,
   WALKABLE_AREA_POINT_RADIUS,
   WALKABLE_AREA_POINT_COLOR
-} = require('../../constants');
-const { featureToPoints, checkContains } = require('./util');
+} = require("../../constants");
 
-// TODO ponderar passar isto para util.js em vez de ter este módulo
-function refreshOverlay(context, newFeature, removedIds) {
-  if(newFeature) {
-    const unionFeature = context.metadata.union;
-    const newArea = unionFeature ? difference(newFeature, unionFeature) : newFeature;
-    const newPoints = featureToPoints(newArea, WALKABLE_AREA_POINT_DENSITY);
-    context.metadata.union = unionFeature ? union(unionFeature, newArea) : newArea;
-    context.metadata.points = context.metadata.points.concat(newPoints);  
+class Overlay {
+  constructor(context) {
+    this.deck = new MapboxOverlay({
+      layers: []
+    });
+    context.map.addControl(this.deck);
   }
-  
-  if(removedIds && removedIds.length > 0) {
+
+  removeFeaturesById(context, removedIds) {
     let newUnion = null;
     for(const id of Object.keys(context.metadata.areas)) {
       if(removedIds.includes(id)) {
+        if(context.metadata.areas[id].worker) {
+          context.metadata.areas[id].worker.terminate();
+        }
         delete context.metadata.areas[id];
       } else {
         const f = context.metadata.areas[id].feature;
@@ -28,31 +30,47 @@ function refreshOverlay(context, newFeature, removedIds) {
       }
     }
     
-    const newPoints = [];
-    if(newUnion) {
-      for(const p of context.metadata.points) {
-        if(checkContains(newUnion, point(p))) {
-          newPoints.push(p);
-        }
-      }
-    }
-
+    const worker = new Worker("point_worker.js");
     context.metadata.union = newUnion;
-    context.metadata.points = newPoints;
+    worker.postMessage({points: context.metadata.points, newUnion: newUnion});
+    worker.onmessage = e => {
+      const newPoints = e.data;
+      context.metadata.points = newPoints;
+      refreshOverlay(context, this.deck);
+    };
   }
 
-  context.map.deck.setProps({
-  layers: [
-      new ScatterplotLayer({
-      id: 'ScatterplotLayer',
-      data: context.metadata.points,
-      getPosition: p => p,
-      getRadius: WALKABLE_AREA_POINT_RADIUS,
-      getFillColor: WALKABLE_AREA_POINT_COLOR
+  addFeature(context, newFeatureId) {
+    const newFeature = context.metadata.areas[newFeatureId].feature;
+    const unionFeature = context.metadata.union;
+    const newArea = unionFeature ? difference(newFeature, unionFeature) : newFeature;
+    context.metadata.union = unionFeature ? union(unionFeature, newArea) : newArea;
+
+    const worker = new Worker("point_worker.js");
+    context.metadata.areas[newFeatureId].worker = worker;
+    worker.postMessage({area: newArea, pointDensity: WALKABLE_AREA_POINT_DENSITY});
+    worker.onmessage = e => {
+      const newPoints = e.data;
+      delete context.metadata.areas[newFeatureId].worker;
+      context.metadata.points = context.metadata.points.concat(newPoints);
+      refreshOverlay(context, this.deck);
+    };
+  }
+}
+
+function refreshOverlay(context, deck) {
+  deck.setProps({
+    layers: [
+        new ScatterplotLayer({
+        id: 'ScatterplotLayer',
+        data: context.metadata.points,
+        getPosition: p => p,
+        getRadius: WALKABLE_AREA_POINT_RADIUS,
+        getFillColor: WALKABLE_AREA_POINT_COLOR
     })
   ]});
 }
 
 module.exports = {
-  refreshOverlay
+  Overlay
 };

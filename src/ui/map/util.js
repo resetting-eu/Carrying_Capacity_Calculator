@@ -3,8 +3,6 @@ const escape = require('escape-html');
 const length = require('@turf/length').default;
 const area = require('@turf/area').default;
 
-const {bbox, randomPoint, booleanContains} = require('@turf/turf');
-
 const popup = require('../../lib/popup');
 const featureHash = require('../../lib/feature_hash');
 const ClickableMarker = require('./clickable_marker');
@@ -492,65 +490,9 @@ function bindPopup(e, context, writable) {
     .addTo(context.map);
 }
 
-function multiPolygonToPolygons(multiPolygonFeature) {
-  if (multiPolygonFeature.type !== 'Feature' || multiPolygonFeature.geometry.type !== 'MultiPolygon') {
-    console.error('Input feature is not a MultiPolygon');
-    return [];
-  }
-
-  const multiPolygonCoordinates = multiPolygonFeature.geometry.coordinates;
-  const polygonFeatures = multiPolygonCoordinates.map(polygonCoords => {
-    return {
-      type: 'Feature',
-      properties: multiPolygonFeature.properties,
-      geometry: {
-        type: 'Polygon',
-        coordinates: polygonCoords
-      }
-    };
-  });
-
-  return polygonFeatures;
-}
-
-function checkContains(feat1, feat2) {
-  const type = feat1.geometry.type;
-  if(type === "MultiPolygon") {
-    const polygons = multiPolygonToPolygons(feat1);
-    for(const polygon of polygons) {
-      if(booleanContains(polygon, feat2)) {
-        return true;
-      }
-    }
-    return false;
-  } else {
-    return booleanContains(feat1, feat2);
-  }
-}
-
-function featureToPoints(feat, density) {
-  const points = [];
-  const featBbox = bbox(feat);
-  const a = area(feat);
-  const n = Math.round(a * density);
-  let featPointCount = 0;
-  while(featPointCount < n) {
-    const randomPoints = randomPoint(n - featPointCount, {bbox: featBbox});
-    for(const pointFeat of randomPoints["features"]) {
-      if(checkContains(feat, pointFeat)) {
-        points.push(pointFeat["geometry"]["coordinates"]);
-        ++featPointCount;
-      }
-    }
-  }
-  return points;
-}
-
 module.exports = {
   addIds,
   addMarkers,
   geojsonToLayer,
-  bindPopup,
-  featureToPoints,
-  checkContains
+  bindPopup
 };

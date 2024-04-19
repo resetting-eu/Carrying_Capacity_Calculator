@@ -32,8 +32,8 @@ module.exports = function (context) {
         .classed("walkable-area-center", true)
         .text("Calculating...");
 
-        const id_hash = featureHash(feature);
-        context.metadata.areas[id_hash] = {meters: "calculating"};
+      const id_hash = featureHash(feature);
+      context.metadata.areas[id_hash] = {meters: "calculating"};
 
       fetch("http://localhost:5000/usable_area", {
         method: "POST",
@@ -52,7 +52,7 @@ module.exports = function (context) {
           .append("td")
           .text((meters / 0.092903).toFixed(2));
 
-        context.map.refreshOverlay(context, j, []);
+        context.map.overlay.addFeature(context, id_hash);
       })
       .catch(_ => {
         delete context.metadata.areas[id_hash];

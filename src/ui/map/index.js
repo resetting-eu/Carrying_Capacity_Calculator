@@ -5,8 +5,6 @@ const geojsonRewind = require('@mapbox/geojson-rewind');
 const MapboxDraw = require('@mapbox/mapbox-gl-draw');
 const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
 
-const {MapboxOverlay} = require('@deck.gl/mapbox');
-
 
 const DrawLineString = require('../draw/linestring');
 const DrawRectangle = require('../draw/rectangle');
@@ -16,7 +14,7 @@ const ExtendDrawBar = require('../draw/extend_draw_bar');
 const featureHash = require('../../lib/feature_hash');
 const { EditControl, SaveCancelControl, TrashControl } = require('./controls');
 const { geojsonToLayer, bindPopup } = require('./util');
-const { refreshOverlay } = require('./overlay');
+const { Overlay } = require('./overlay');
 const styles = require('./styles');
 const {
   DEFAULT_STYLE,
@@ -394,12 +392,9 @@ module.exports = function (context, readonly) {
         });
 
 
-        const overlay = new MapboxOverlay({
-          layers: []
-        });
-        context.map.addControl(overlay);
-        context.map.deck = overlay;
-        context.map.refreshOverlay = refreshOverlay;
+        if(!context.map.overlay) {
+          context.map.overlay = new Overlay(context);
+        }
 
         geojsonToLayer(context, writable);
 
@@ -500,7 +495,7 @@ module.exports = function (context, readonly) {
       if (obj.map) {
         geojsonToLayer(context, writable);
       }
-      if(context.map.refreshOverlay) {
+      if(context.map.overlay) {
         const features = context.data.get("map").features;
         const removedIds = [];
         for(const metadataId of Object.keys(context.metadata.areas)) {
@@ -518,7 +513,7 @@ module.exports = function (context, readonly) {
         }
 
         if(removedIds && removedIds.length > 0) {
-          context.map.refreshOverlay(context, null, removedIds);
+          context.map.overlay.removeFeaturesById(context, removedIds);
         }
       }
     });
