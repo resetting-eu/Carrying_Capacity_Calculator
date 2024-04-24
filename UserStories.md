@@ -12,8 +12,20 @@ As a user, I want to:
  
 - [TODO] obtain the number of people that the selected polygon can carry, by providing a density in terms of persons per square meter (by default 1 person/square meter);
 
-- [TO DISCUSS] paint the border of the pedestrian spaces with the following color scheme, where the intervals relate to the percentage of the selected area that are usable for pedestrians:
+- [TODO] paint the border of the pedestrian spaces with the following color scheme, where the intervals relate to the percentage of the selected area that are usable for pedestrians:
 
+    | Percent  | RGB               | Hex     |
+    |----------|-------------------|---------|
+    | ]00, 10] | (0.482,0.247,0.0) | #7B3F00 |
+    | ]10, 20] | (1.00, 0.00, 0.0) | #FF0000 |
+    | ]20, 30] | (1.00, 0.25, 0.0) | #FF3F00 |
+    | ]30, 40] | (1.00, 0.50, 0.0) | #FF7F00 |
+    | ]40, 50] | (1.00, 0.75, 0.0) | #FFBF00 |
+    | ]50, 60] | (1.00, 1.00, 0.0) | #FFFF00 |
+    | ]60, 70] | (0.750,0.875,0.0) | #BFDF00 |
+    | ]70, 80] | (0.50, 0.75, 0.0) | #7FBF00 |
+    | ]80, 90] | (0.25, 0.625,0.0) | #3F9F00 |
+    | ]90,100] | (0.00, 0.50, 0.0) | #007F00 |
 
 ## Non-functional user stories
 
