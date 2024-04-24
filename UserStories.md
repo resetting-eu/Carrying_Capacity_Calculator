@@ -1,4 +1,4 @@
-# User Stories for the Physical Carrying Capacity Calculator for Pedestrians
+# User Stories for this calculator
 
 ## Functional User Stories
 
