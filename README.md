@@ -14,12 +14,12 @@ This tool has been developed by the [ISTAR-IUL team](https://sites.google.com/is
 ## Acknowledgement
 If you use this tool in your research, please acknowledge it by citing our work:
 ```
-Sampaio de Almeida, D., Simões, R., Brito e Abreu, F., & Lopes, A. (2024, May). An algorithm for calculating pedestrians' physical carrying capacity on OpenStreetMap. Zenodo. https://doi.org/10.5281/zenodo.333333
+Sampaio de Almeida, D., Simões, R., Brito e Abreu, F., & Lopes, A. & Boavida-Portugal, Inês (2024, May). An algorithm for calculating pedestrians' physical carrying capacity on OpenStreetMap. Zenodo. https://doi.org/10.5281/zenodo.333333
 ```
 If you use LaTeX, here is the corresponding BibTeX entry:
 ```
 @techreport{Almeida2024,
-    author = {Sampaio de Almeida, Duarte and Simões, Rodrigo and Brito e Abreu, Fernando and Lopes, Adriano},
+    author = {Sampaio de Almeida, Duarte and Simões, Rodrigo and Brito e Abreu, Fernando and Lopes, Adriano and Boavida-Portugal, Inês},
     title = {An algorithm for calculating pedestrians physical carrying capacity on {OpenStreetMap}},
     institution = {Zenodo},
     year = {2024},
