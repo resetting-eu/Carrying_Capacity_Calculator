@@ -12,7 +12,7 @@ As a user, I want to:
  
 - [TODO] obtain the number of people that the selected polygon can carry, by providing a density in terms of persons per square meter (by default 1 person/square meter);
 
-- [TODO] paint the border of the pedestrian spaces with the following color scheme, where the intervals relate to the percentage of the selected area that are usable for pedestrians:
+- [TODO] show the border of the pedestrian spaces with the following color scheme, where the intervals relate to the percentage of the selected area that are usable for pedestrians:
 
     | Percent  | RGB               | Hex     |
     |----------|-------------------|---------|
@@ -31,8 +31,7 @@ As a user, I want to:
 
 As a user, I want to:
 
-- [TODO]  be aware of the progress of my requests through a progress bar;
+- [TODO] be aware of the progress of my requests through a progress bar;
 
 - [TODO] obtain incrementally the results of my requests when their processing allows parallelization (e.g. by incremental rendering).
 
- 
