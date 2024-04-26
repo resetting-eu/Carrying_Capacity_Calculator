@@ -10,7 +10,7 @@ As a user, I want to:
 
 - [TODO] observe the usable area for pedestrians in the currently selected polygon, and obtain its area in square meters and its percentage of the total selected area; the usable area for pedestrians is usually a collection of disconnected polygons, herein called "pedestrian spaces";
  
-- [TODO] obtain the Physical Carrying Capacity (PCC), Real Carrying Capacity (RCC) and Effective Carrying Capacity (ECC), as defined in [Cifuentes1992](https://www.ucm.es/data/cont/media/www/pag-51898/1992_METODOLOG%C3%8DA%20CIFUENTES.pdf), for the selected polygon, by providing the required  density in terms of persons per square meter (by default 1 person/square meter);
+- [TODO] obtain the Physical Carrying Capacity (PCC), Real Carrying Capacity (RCC) and Effective Carrying Capacity (ECC), as proposed in [[Cifuentes1992]](https://www.ucm.es/data/cont/media/www/pag-51898/1992_METODOLOG%C3%8DA%20CIFUENTES.pdf), for the selected polygon, by providing the required input parameters with adequate default values and displaying contextual help;
 
 - [TODO] show the border of the pedestrian spaces with the following color scheme, where the intervals relate to the percentage of the selected area that are usable for pedestrians:
 
