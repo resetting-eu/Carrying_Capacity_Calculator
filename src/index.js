@@ -60,7 +60,7 @@ function geojsonIO() {
   context.repo = repo(context);
   context.router = router(context);
   context.user = user(context);
-  context.metadata = {points: [], areas: {}, union: null};
+  context.metadata = {points: [], areas: {}, union: null, areaUnit: null};
   return context;
 }
 

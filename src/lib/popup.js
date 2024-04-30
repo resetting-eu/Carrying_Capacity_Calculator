@@ -1,5 +1,6 @@
 const area = require('@turf/area').default;
 const featureHash = require('./feature_hash');
+const {areaUnits, convertArea} = require('./area_units');
 
 module.exports = function (context) {
   return function (e, id) {
@@ -17,20 +18,19 @@ module.exports = function (context) {
 
     sel.selectAll('.delete-invert').on('click', removeFeature);
 
-    sel.select('#calculate').on('click', calculateWalkableArea);
+    sel.select('.calculate-carrying-capacity-button').on('click', calculateWalkableArea);
+
+    sel.select('#area-unit-select').on('change', changeAreaUnit);
 
     function calculateWalkableArea() {
       const data = context.data.get('map');
       const feature = data.features[id];
 
-      const doubleCell = sel.select("#calc-row-m > td[rowspan=\"2\"]");
-      doubleCell
-        .select("button")
-        .remove();
-      doubleCell
-        .append("span")
-        .classed("walkable-area-center", true)
-        .text("Calculating...");
+      const button = sel.select(".calculate-carrying-capacity-button");
+      button.classed("hide", true);
+
+      const calculating = sel.select("#calculating");
+      calculating.classed("hide", false);
 
       const id_hash = featureHash(feature);
       context.metadata.areas[id_hash] = {meters: "calculating"};
@@ -42,31 +42,65 @@ module.exports = function (context) {
       })
       .then(r => r.json())
       .then(j => {
-        const meters = area(j);
-        context.metadata.areas[id_hash] = {feature: j, meters};
+        const walkable_meters = area(j);
+        context.metadata.areas[id_hash] = {feature: j, meters: walkable_meters};
         
-        doubleCell
-          .attr("rowspan", null)
-          .text(meters.toFixed(2));
-        sel.select("#calc-row-ft")
+        calculating.classed("hide", true);
+
+        const unitHTML = context.metadata.areaUnit.symbolHTML;
+
+        const table = sel.select(".metadata");
+        const rowUnit = table.append("tr");
+        rowUnit
           .append("td")
-          .text((meters / 0.092903).toFixed(2));
+          .attr("rowspan", "2")
+          .classed("align-middle", true)
+          .text("Walkable Area");
+        rowUnit
+          .append("td")
+          .attr("id", "info-walkable-area")
+          .html(convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
+            + ' ' + unitHTML);
+        table
+          .append("tr")
+          .append("td")
+          .text((walkable_meters / area(feature.geometry) * 100).toFixed(2) + '%');
 
         context.map.overlay.addFeature(context, id_hash);
       })
       .catch(_ => {
         delete context.metadata.areas[id_hash];
 
-        doubleCell
-          .selectAll("*")
-          .remove();
-        doubleCell
-          .append("button")
-          .attr("id", "calculate")
-          .classed("walkable-area-center major", true)
-          .text("Calculate")
-          .on('click', calculateWalkableArea);
+        table.selectAll("tr:not(:first-child)").remove();
+        calculating.classed("hide", true);
+        button.classed("hide", false);
       });
+    }
+
+    function changeAreaUnit() {
+      const areaUnitName = this.value;
+      const areaUnit = Object.values(areaUnits).filter(o => o.name === areaUnitName)[0];
+      context.metadata.areaUnit = areaUnit;
+      context.storage.set("area_unit", areaUnit.name);
+
+      const data = context.data.get('map');
+      const feature = data.features[id];
+      const id_hash = featureHash(feature);
+      const walkableAreaFeature = context.metadata.areas[id_hash]?.feature;
+
+      const unitHTML = context.metadata.areaUnit.symbolHTML;
+
+      sel
+        .select("#info-area")
+        .html(convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
+          + ' ' + unitHTML);
+      
+      if(walkableAreaFeature !== undefined) {
+        sel
+          .select("#info-walkable-area")
+          .html(convertArea(area(walkableAreaFeature), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
+            + ' ' + unitHTML)
+      }
     }
 
     function clickClose() {

@@ -5,6 +5,7 @@ const area = require('@turf/area').default;
 
 const popup = require('../../lib/popup');
 const featureHash = require('../../lib/feature_hash');
+const {areaUnits, convertArea, DEFAULT_AREA_UNIT} = require('../../lib/area_units');
 const ClickableMarker = require('./clickable_marker');
 const zoomextent = require('../../lib/zoomextent');
 const {
@@ -199,6 +200,26 @@ function geojsonToLayer(context, writable) {
   }
 }
 
+function loadAreaUnitFromStorage(context) {
+  const storedAreaUnitName = context.storage.get("area_unit");
+  if(storedAreaUnitName) {
+    let storedUnit;
+    for(const unit of Object.values(areaUnits)) {
+      if(unit.name === storedAreaUnitName) {
+        storedUnit = unit;
+        break;
+      }
+      console.warn("area_unit in storage is invalid");
+      storedUnit = DEFAULT_AREA_UNIT;
+      context.storage.set("area_unit", storedUnit.name);
+    }
+    context.metadata.areaUnit = storedUnit;
+  } else {
+    context.metadata.areaUnit = DEFAULT_AREA_UNIT;
+    context.storage.set("area_unit", DEFAULT_AREA_UNIT.name);
+  }
+}
+
 function bindPopup(e, context, writable) {
   // build the popup using the actual feature from the data store,
   // not the feature returned from queryRenderedFeatures()
@@ -311,6 +332,8 @@ function bindPopup(e, context, writable) {
   }
 
   if (feature && feature.geometry) {
+    let walkable_meters; // used for polygons
+
     info += '<table class="metadata">';
     if (feature.geometry.type === 'LineString') {
       const total = length(feature) * 1000;
@@ -338,48 +361,54 @@ function bindPopup(e, context, writable) {
         '<tr><td>Longitude</td><td>' +
         feature.geometry.coordinates[0].toFixed(4) +
         '</td></tr>';
-    } else if (feature.geometry.type === 'Polygon') {      
+    } else if (feature.geometry.type === 'Polygon') {
+      if(!context.metadata.areaUnit) {
+        loadAreaUnitFromStorage(context);
+      }
+
+      const unitHTML = context.metadata.areaUnit.symbolHTML;
+
       info +=
-        '<tr><td>Sq. Meters</td><td>' +
-        area(feature.geometry).toFixed(2) +
-        '</td></tr>' +
-        '<tr><td>Sq. Kilometers</td><td>' +
-        (area(feature.geometry) / 1000000).toFixed(2) +
-        '</td></tr>' +
-        '<tr><td>Sq. Feet</td><td>' +
-        (area(feature.geometry) / 0.092903).toFixed(2) +
-        '</td></tr>' +
-        '<tr><td>Acres</td><td>' +
-        (area(feature.geometry) / 4046.86).toFixed(2) +
-        '</td></tr>' +
-        '<tr><td>Sq. Miles</td><td>' +
-        (area(feature.geometry) / 2589990).toFixed(2) +
-        '</td></tr>';
+        '<tr><td>Area</td><td id="info-area">' +
+        convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
+        ' ' + unitHTML +
+        '</td></tr>'; 
+
       const id = featureHash(feature);
-      const walkable_meters = context.metadata.areas[id]?.meters;
-      if(walkable_meters === undefined) {
+      walkable_meters = context.metadata.areas[id]?.meters;
+      if(typeof walkable_meters === "number") {
         info +=
-          '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
-          '<button id="calculate" class="walkable-area-center major">Calculate</button>' +
-          '</td></tr>' +
-          '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
-      } else if(walkable_meters === "calculating") {
-        info +=
-          '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td rowspan="2">' +
-          '<span class="walkable-area-center">Calculating...</span>' +
-          '</td></tr>' +
-          '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td></tr>';
-      } else {
-        info +=
-          '<tr id="calc-row-m"><td>Walkable Area (m<sup>2</sup>)</td><td>' +
-          walkable_meters.toFixed(2) +
-          '</td></tr>' +
-          '<tr id="calc-row-ft"><td>Walkable Area (ft<sup>2</sup>)</td><td>' +
-          (walkable_meters / 0.092903).toFixed(2) +
-          '</td></tr>';
+          '<tr><td rowspan="2" class="align-middle">Walkable Area</td><td id="info-walkable-area" >' +
+          convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
+          ' ' + unitHTML +
+          '</td></tr><tr><td>' +
+          (walkable_meters / area(feature.geometry) * 100).toFixed(2) +
+          '%</td></tr>';
       }
     }
     info += '</table>';
+
+    if (feature.geometry.type === 'Polygon') {
+      info += '<button type="button" class="major calculate-carrying-capacity-button';
+      if(walkable_meters !== undefined)
+        info += ' hide';
+      info += '">Calculate carrying capacity</button>';
+
+      
+      info += '<div id="calculating" class="center';
+      if(walkable_meters !== "calculating") 
+        info += ' hide';
+      info += '">Calculating carrying capacity...</div>';
+
+      info +=
+        '<div class="area-unit">' +
+        '<label for="area-unit-select">Area unit</label>' +
+        '<select id="area-unit-select">' +
+        Object.values(areaUnits).map(o =>
+          `<option value="${o.name}" ${o === context.metadata.areaUnit ? "selected" : ""}>${o.name}</option>`
+        ).join() +
+        '</select></div>';
+    }
   }
 
   // don't show the add simplestyle properties button if the feature already contains simplestyle properties

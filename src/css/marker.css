@@ -10,12 +10,26 @@
   max-height: 189px;
 }
 
-.walkable-area-center {
-  position: relative;
-  top: 14px;
-  width: 100%;
-  text-align: center;
-  display: inline-block;
+.marker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.area-unit {
+  margin-left: 0.3em;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.area-unit > select {
+	padding: 5px;
+	border-radius: 3px;
+}
+
+.calculate-carrying-capacity-button {
+  align-self: center;
 }
 
 .marker-properties {
@@ -49,8 +63,12 @@
 
 .marker-properties tr:nth-child(even) th,
 .marker-properties tr:nth-child(even) td,
-.metadata tr:nth-child(even) td {
+.metadata tr:nth-child(even) td:not(.action-row) {
   background-color: #f7f7f7;
+}
+
+.metadata .action-row {
+  border: none;
 }
 
 .geojsonio-feature {
@@ -115,12 +133,14 @@ datalist {
 }
 
 .add-row-button,
-.add-simplestyle-properties-button {
+.add-simplestyle-properties-button,
+.add-carrying-capacity-input-button {
   color: #2980b9;
 }
 
 .add-row-button:hover,
-.add-simplestyle-properties-button:hover {
+.add-simplestyle-properties-button:hover,
+.add-carrying-capacity-input-button:hover {
   cursor: pointer;
   color: #199cf4;
 }
