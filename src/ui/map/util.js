@@ -406,7 +406,7 @@ function bindPopup(e, context, writable) {
         '<select id="area-unit-select">' +
         Object.values(areaUnits).map(o =>
           `<option value="${o.name}" ${o === context.metadata.areaUnit ? "selected" : ""}>${o.name}</option>`
-        ).join() +
+        ).join("") +
         '</select></div>';
     }
   }
