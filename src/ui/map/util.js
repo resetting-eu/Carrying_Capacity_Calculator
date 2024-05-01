@@ -378,7 +378,9 @@ function bindPopup(e, context, writable) {
       walkable_meters = context.metadata.areas[id]?.meters;
       if(typeof walkable_meters === "number") {
         info +=
-          '<tr><td rowspan="2" class="align-middle">Walkable Area</td><td id="info-walkable-area" >' +
+          '<tr><td rowspan="2" class="align-middle">' +
+          '<span class="tooltip-label" tooltip="walkable-area">Walkable Area</span>' +
+          '</td><td id="info-walkable-area" >' +
           convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
           ' ' + unitHTML +
           '</td></tr><tr><td>' +

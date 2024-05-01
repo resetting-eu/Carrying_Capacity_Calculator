@@ -32,6 +32,25 @@
   align-self: center;
 }
 
+.tooltip-label {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.tooltip {
+  background-color: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: none;
+  z-index: 110;
+  max-inline-size: 25em;
+}
+
+.tooltip[data-show] {
+  display: block;
+}
+
 .marker-properties {
   display: block;
 }

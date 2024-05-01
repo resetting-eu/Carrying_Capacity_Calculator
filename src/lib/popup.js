@@ -1,6 +1,8 @@
 const area = require('@turf/area').default;
+const {createPopper, flip} = require('@popperjs/core');
 const featureHash = require('./feature_hash');
 const {areaUnits, convertArea} = require('./area_units');
+const tooltips = require('./tooltips');
 
 module.exports = function (context) {
   return function (e, id) {
@@ -21,6 +23,8 @@ module.exports = function (context) {
     sel.select('.calculate-carrying-capacity-button').on('click', calculateWalkableArea);
 
     sel.select('#area-unit-select').on('change', changeAreaUnit);
+
+    addPoppers();
 
     function calculateWalkableArea() {
       const data = context.data.get('map');
@@ -55,6 +59,9 @@ module.exports = function (context) {
           .append("td")
           .attr("rowspan", "2")
           .classed("align-middle", true)
+          .append("span")
+          .classed("tooltip-label", true)
+          .attr("tooltip", "walkable-area")
           .text("Walkable Area");
         rowUnit
           .append("td")
@@ -65,6 +72,8 @@ module.exports = function (context) {
           .append("tr")
           .append("td")
           .text((walkable_meters / area(feature.geometry) * 100).toFixed(2) + '%');
+
+        addPoppers();
 
         context.map.overlay.addFeature(context, id_hash);
       })
@@ -101,6 +110,43 @@ module.exports = function (context) {
           .html(convertArea(area(walkableAreaFeature), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
             + ' ' + unitHTML)
       }
+    }
+
+    function addPoppers() {
+      sel.selectAll(".tooltip-label:not([has-popper])").each(function() {
+        const label = this;
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.setAttribute("role", "tooltip");
+        tooltip.textContent = tooltips[label.getAttribute("tooltip")];
+        label.insertAdjacentElement("afterend", tooltip);
+
+        label.setAttribute("has-popper", "");
+        const popperInstance = createPopper(label, tooltip, {
+          placement: 'top',
+          modifiers: [flip]
+        });
+  
+        function show() {
+          tooltip.setAttribute('data-show', '');  
+          popperInstance.update();
+        }
+        
+        function hide() {
+          tooltip.removeAttribute('data-show');
+        }
+        
+        const showEvents = ['mouseenter', 'focus'];
+        const hideEvents = ['mouseleave', 'blur'];
+        
+        showEvents.forEach((event) => {
+          label.addEventListener(event, show);
+        });
+        
+        hideEvents.forEach((event) => {
+          label.addEventListener(event, hide);
+        });  
+      });
     }
 
     function clickClose() {
