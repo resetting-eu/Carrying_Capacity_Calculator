@@ -4,6 +4,11 @@ const featureHash = require('./feature_hash');
 const {areaUnits, convertArea} = require('./area_units');
 const tooltips = require('./tooltips');
 
+const DEFAULT_AREA_PER_PEDESTRIAN = 1; // sq. meters
+const DEFAULT_ROTATION_FACTOR = 1;
+const AREA_PER_PEDESTRIAN_STORAGE_KEY = "area_per_pedestrian";
+const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
+
 module.exports = function (context) {
   return function (e, id) {
     const sel = d3.select(e.target._content);
@@ -24,7 +29,14 @@ module.exports = function (context) {
 
     sel.select('#area-unit-select').on('change', changeAreaUnit);
 
-    addPoppers();
+    const data = context.data.get('map');
+    const feature = data.features[id];
+    const id_hash = featureHash(feature);
+    if(typeof context.metadata.areas[id_hash]?.meters === "number") {
+      expandMetadataWithCarryingCapacity(feature, context.metadata.areas[id_hash].meters);
+    } else {
+      expandMetadataWithTotalArea(feature);
+    }
 
     function calculateWalkableArea() {
       const data = context.data.get('map');
@@ -51,42 +63,93 @@ module.exports = function (context) {
         
         calculating.classed("hide", true);
 
-        const unitHTML = context.metadata.areaUnit.symbolHTML;
-
-        const table = sel.select(".metadata");
-        const rowUnit = table.append("tr");
-        rowUnit
-          .append("td")
-          .attr("rowspan", "2")
-          .classed("align-middle", true)
-          .append("span")
-          .classed("tooltip-label", true)
-          .attr("tooltip", "walkable-area")
-          .text("Walkable Area");
-        rowUnit
-          .append("td")
-          .attr("id", "info-walkable-area")
-          .html(convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
-            + ' ' + unitHTML);
-        table
-          .append("tr")
-          .append("td")
-          .text((walkable_meters / area(feature.geometry) * 100).toFixed(2) + '%');
-
-        addPoppers();
+        expandMetadataWithCarryingCapacity(feature, walkable_meters);
 
         context.map.overlay.addFeature(context, id_hash);
       })
-      .catch(_ => {
+      .catch(e => {
+        console.error(e);
         delete context.metadata.areas[id_hash];
 
-        table.selectAll("tr:not(:first-child)").remove();
+        sel.selectAll(".metadata tr:not(:first-child)").remove();
         calculating.classed("hide", true);
         button.classed("hide", false);
       });
     }
 
+    function expandMetadataWithTotalArea(feature) {
+      const unitHTML = context.metadata.areaUnit.symbolHTML;
+      sel.select(".metadata").html(
+        '<tr><td>Area</td><td><span id="info-area">' +
+        convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
+        '</span> <span class="info-area-unit">' + unitHTML + '</span>' +
+        '</td></tr>'
+      );
+    }
+
+    function expandMetadataWithCarryingCapacity(feature, walkable_meters) {
+      const unitHTML = context.metadata.areaUnit.symbolHTML;
+
+      const {areaPerPedestrian, rotationFactor} = loadCarryingCapacityInputsFromStorage(id_hash);
+      const areaPerPedestrianInSelectedUnit = convertArea(areaPerPedestrian, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
+
+      sel.select(".metadata").html(
+        '<tr><td>Area</td><td><span id="info-area">' +
+        convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
+        '</span> <span class="info-area-unit">' + unitHTML + '</span>' +
+        '</td></tr>' +
+        '<tr><td rowspan="2" class="align-middle">' +
+        '<span class="tooltip-label" tooltip="walkable-area">Walkable Area</span>' +
+        '</td><td><span id="info-walkable-area">' +
+        convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
+        '</span> <span class="info-area-unit">' + unitHTML + '</span>' +
+        '</td></tr><tr><td>' +
+        (walkable_meters / area(feature.geometry) * 100).toFixed(2) +
+        '%</td></tr>' +
+        '<tr class="space-row-top carrying-capacity-input">' +
+        '<td class="align-middle"><div class="carrying-capacity-input-cell"><span class="tooltip-label" tooltip="area-per-pedestrian">Area per Pedestrian</span></div></td>' +
+        '<td><div class="carrying-capacity-input-cell"><input value="' + areaPerPedestrianInSelectedUnit + '" id="info-area-per-pedestrian"></input> <span class="info-area-unit">' + unitHTML + '</span></div></td></tr>' +
+        '<tr class="carrying-capacity-input">' +
+        '<td class="align-middle"><div class="carrying-capacity-input-cell"><span class="tooltip-label" tooltip="rotation-factor">Rotation Factor</span></div></td>' +
+        '<td><div class="carrying-capacity-input-cell"><input id="info-rotation-factor" value="' + rotationFactor + '"></input></div></td></tr>' +
+        '<tr><td><span class="tooltip-label" tooltip="physical-carrying-capacity">PCC</span></td>' +
+        '<td><span id="info-physical-carrying-capacity">' + Math.round(walkable_meters / areaPerPedestrian * rotationFactor) + '</span> visitors</td></tr>'
+      );
+      
+      addCalculatorEvents();
+
+      addPoppers();
+    }
+
+    function loadCarryingCapacityInputsFromStorage(id_hash) {
+      return {
+        areaPerPedestrian: loadFromStorage(id_hash, AREA_PER_PEDESTRIAN_STORAGE_KEY, DEFAULT_AREA_PER_PEDESTRIAN),
+        rotationFactor: loadFromStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, DEFAULT_ROTATION_FACTOR)
+      }
+    }
+
+    function computeStorageKey(id_hash, key) {
+      return "cc_input_" + key + id_hash;
+    }
+
+    function loadFromStorage(id_hash, key, defaultValue) {
+      const computedKey = computeStorageKey(id_hash, key);
+      const value = context.storage.get(computedKey);
+      if(value) {
+        return value;
+      } else {
+        context.storage.set(computedKey, defaultValue);
+        return defaultValue;
+      }
+    }
+
+    function storeInStorage(id_hash, key, value) {
+      const computedKey = computeStorageKey(id_hash, key);
+      context.storage.set(computedKey, value);
+    }
+
     function changeAreaUnit() {
+      const oldAreaUnit = context.metadata.areaUnit;
       const areaUnitName = this.value;
       const areaUnit = Object.values(areaUnits).filter(o => o.name === areaUnitName)[0];
       context.metadata.areaUnit = areaUnit;
@@ -101,15 +164,22 @@ module.exports = function (context) {
 
       sel
         .select("#info-area")
-        .html(convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
-          + ' ' + unitHTML);
+        .text(convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2));
       
       if(walkableAreaFeature !== undefined) {
         sel
           .select("#info-walkable-area")
-          .html(convertArea(area(walkableAreaFeature), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2)
-            + ' ' + unitHTML)
+          .text(convertArea(area(walkableAreaFeature), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2))
+
+        const areaPerPedestrianOld = parseFloat(sel.select("#info-area-per-pedestrian").property("value"));
+        sel
+          .select("#info-area-per-pedestrian")
+          .property("value", convertArea(areaPerPedestrianOld, oldAreaUnit, context.metadata.areaUnit));
       }
+
+      sel
+        .selectAll(".info-area-unit")
+        .html(unitHTML);
     }
 
     function addPoppers() {
@@ -146,6 +216,38 @@ module.exports = function (context) {
         hideEvents.forEach((event) => {
           label.addEventListener(event, hide);
         });  
+      });
+    }
+
+    function addCalculatorEvents() {
+      // change area per pedestrian
+      sel.select("#info-area-per-pedestrian").on("input", function () {
+        const areaPerPedestrian = parseFloat(d3.event.target.value);
+        const areaUnit = context.metadata.areaUnit;
+        const rotationFactor = parseFloat(sel.select("#info-rotation-factor").property("value"));
+        const areaPerPedestrianInMeters = convertArea(areaPerPedestrian, areaUnit, areaUnits.SQUARE_METERS);
+        const data = context.data.get('map');
+        const feature = data.features[id];
+        const id_hash = featureHash(feature);
+        const walkableArea = context.metadata.areas[id_hash].meters;
+        const pcc = Math.round(walkableArea / areaPerPedestrianInMeters * rotationFactor);
+        sel.select("#info-physical-carrying-capacity").text(pcc);
+        storeInStorage(id_hash, AREA_PER_PEDESTRIAN_STORAGE_KEY, areaPerPedestrianInMeters);
+      });
+
+      // change rotation factor
+      sel.select("#info-rotation-factor").on("input", function () {
+        const areaPerPedestrian = parseFloat(sel.select("#info-area-per-pedestrian").property("value"));
+        const areaUnit = context.metadata.areaUnit;
+        const rotationFactor = parseFloat(d3.event.target.value);
+        const areaPerPedestrianInMeters = convertArea(areaPerPedestrian, areaUnit, areaUnits.SQUARE_METERS);
+        const data = context.data.get('map');
+        const feature = data.features[id];
+        const id_hash = featureHash(feature);
+        const walkableArea = context.metadata.areas[id_hash].meters;
+        const pcc = Math.round(walkableArea / areaPerPedestrianInMeters * rotationFactor);
+        sel.select("#info-physical-carrying-capacity").text(pcc);
+        storeInStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, rotationFactor);
       });
     }
 

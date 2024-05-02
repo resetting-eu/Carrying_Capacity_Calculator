@@ -81,9 +81,29 @@
 }
 
 .marker-properties tr:nth-child(even) th,
-.marker-properties tr:nth-child(even) td,
-.metadata tr:nth-child(even) td:not(.action-row) {
+.marker-properties tr:nth-child(even) td {
   background-color: #f7f7f7;
+}
+
+tr.space-row-top td {
+  padding-top: 10px !important;
+}
+
+.carrying-capacity-input-cell {
+  border: 1px dotted #4396e2;
+  padding: 5px;
+  height: 35px;
+}
+
+tr.carrying-capacity-input td {
+  border: 0;
+  padding: 0;
+}
+
+tr.carrying-capacity-input input {
+  border: 1px solid #ccc;
+  max-width: 5em;
+  height: 2.25em;
 }
 
 .metadata .action-row {

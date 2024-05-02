@@ -1,11 +1,10 @@
 const mapboxgl = require('mapbox-gl');
 const escape = require('escape-html');
 const length = require('@turf/length').default;
-const area = require('@turf/area').default;
 
 const popup = require('../../lib/popup');
 const featureHash = require('../../lib/feature_hash');
-const {areaUnits, convertArea, DEFAULT_AREA_UNIT} = require('../../lib/area_units');
+const {areaUnits, DEFAULT_AREA_UNIT} = require('../../lib/area_units');
 const ClickableMarker = require('./clickable_marker');
 const zoomextent = require('../../lib/zoomextent');
 const {
@@ -365,32 +364,13 @@ function bindPopup(e, context, writable) {
       if(!context.metadata.areaUnit) {
         loadAreaUnitFromStorage(context);
       }
-
-      const unitHTML = context.metadata.areaUnit.symbolHTML;
-
-      info +=
-        '<tr><td>Area</td><td id="info-area">' +
-        convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
-        ' ' + unitHTML +
-        '</td></tr>'; 
-
-      const id = featureHash(feature);
-      walkable_meters = context.metadata.areas[id]?.meters;
-      if(typeof walkable_meters === "number") {
-        info +=
-          '<tr><td rowspan="2" class="align-middle">' +
-          '<span class="tooltip-label" tooltip="walkable-area">Walkable Area</span>' +
-          '</td><td id="info-walkable-area" >' +
-          convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
-          ' ' + unitHTML +
-          '</td></tr><tr><td>' +
-          (walkable_meters / area(feature.geometry) * 100).toFixed(2) +
-          '%</td></tr>';
-      }
     }
     info += '</table>';
 
     if (feature.geometry.type === 'Polygon') {
+      const id = featureHash(feature);
+      walkable_meters = context.metadata.areas[id]?.meters;
+
       info += '<button type="button" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)
         info += ' hide';
