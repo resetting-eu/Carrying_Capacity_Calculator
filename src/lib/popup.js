@@ -6,8 +6,10 @@ const tooltips = require('./tooltips');
 
 const DEFAULT_AREA_PER_PEDESTRIAN = 1; // sq. meters
 const DEFAULT_ROTATION_FACTOR = 1;
+const DEFAULT_CORRECTIVE_FACTORS = JSON.stringify([{name: "Environment Factor", value: 0.54}]);
 const AREA_PER_PEDESTRIAN_STORAGE_KEY = "area_per_pedestrian";
 const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
+const CORRECTIVE_FACTORS_STORAGE_KEY = "corrective_factors";
 
 module.exports = function (context) {
   return function (e, id) {
@@ -32,10 +34,15 @@ module.exports = function (context) {
     const data = context.data.get('map');
     const feature = data.features[id];
     const id_hash = featureHash(feature);
-    if(feature.geometry.type === "Polygon") {
-      expandMetadataWithTotalArea(feature);
-      if(typeof context.metadata.areas[id_hash]?.meters === "number") {
-        expandMetadataWithCarryingCapacity(feature, context.metadata.areas[id_hash].meters);
+    
+    renderMetadata();
+
+    function renderMetadata() {
+      if(feature.geometry.type === "Polygon") {
+        expandMetadataWithTotalArea(feature);
+        if(typeof context.metadata.areas[id_hash]?.meters === "number") {
+          expandMetadataWithCarryingCapacity(feature, context.metadata.areas[id_hash].meters);
+        }
       }
     }
 
@@ -92,7 +99,7 @@ module.exports = function (context) {
     function expandMetadataWithCarryingCapacity(feature, walkable_meters) {
       const unitHTML = context.metadata.areaUnit.symbolHTML;
 
-      const {areaPerPedestrian, rotationFactor} = loadCarryingCapacityInputsFromStorage(id_hash);
+      const {areaPerPedestrian, rotationFactor, correctiveFactors} = loadCarryingCapacityInputsFromStorage(id_hash);
       const areaPerPedestrianInSelectedUnit = convertArea(areaPerPedestrian, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
 
       sel.select(".metadata-grid").html(
@@ -110,8 +117,9 @@ module.exports = function (context) {
         '<div class="input row-with-gap">' +
         '<span class="tooltip-label" tooltip="rotation-factor">Rotation Factor</span></div>' +
         '<div class="right input row-with-gap"><input id="info-rotation-factor" value="' + rotationFactor + '"></input></div>' +
-        '<div><span class="tooltip-label" tooltip="physical-carrying-capacity">PCC</span></div>' +
-        '<div class="right"><span id="info-physical-carrying-capacity">' + Math.round(walkable_meters / areaPerPedestrian * rotationFactor) + '</span> visitors</div>'
+        '<div class="row-with-gap"><span class="tooltip-label" tooltip="physical-carrying-capacity">PCC</span></div>' +
+        '<div class="right row-with-gap"><span id="info-physical-carrying-capacity">' + Math.round(walkable_meters / areaPerPedestrian * rotationFactor) + '</span> visitors</div>' +
+        correctiveFactorsHtml(correctiveFactors, areaPerPedestrian, rotationFactor)
       );
       
       addCalculatorEvents();
@@ -119,10 +127,29 @@ module.exports = function (context) {
       addPoppers();
     }
 
+    function correctiveFactorsHtml(correctiveFactors, areaPerPedestrian, rotationFactor) {
+      const walkable_meters = context.metadata.areas[id_hash].meters;
+      let rcc = Math.round(walkable_meters / areaPerPedestrian * rotationFactor);
+
+      let res = "";
+      for(let i = 0; i < correctiveFactors.length; ++i) {
+        const cf = correctiveFactors[i];
+        rcc *= cf.value;
+        const lastRowClass = i == correctiveFactors.length - 1 ? "last-row" : "";
+        res += `<div class="input corrective-factor ${lastRowClass}"><span>${cf.name}</span><textarea class="hide">${cf.name}</textarea><i class="fa-solid fa-check hide cf-align-right"></i><i class="fa-solid fa-pencil cf-align-right cf-edit"></i><i class="fa-solid fa-xmark delete-invert"></i></span></div><div class="input right ${lastRowClass}"><input value="${cf.value}"></input></div>`
+      }
+      res +=
+        '<div class="add-corrective-factor"><span class="fa-solid fa-plus"></span> Add Corrective Factor</div>' +
+        '<div><span class="tooltip-label" tooltip="real-carrying-capacity">RCC</span></div>' +
+        '<div class="right"><span id="info-real-carrying-capacity">' + Math.round(rcc) + '</span> visitors</div>';
+      return res;
+    }
+
     function loadCarryingCapacityInputsFromStorage(id_hash) {
       return {
         areaPerPedestrian: loadFromStorage(id_hash, AREA_PER_PEDESTRIAN_STORAGE_KEY, DEFAULT_AREA_PER_PEDESTRIAN),
-        rotationFactor: loadFromStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, DEFAULT_ROTATION_FACTOR)
+        rotationFactor: loadFromStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, DEFAULT_ROTATION_FACTOR),
+        correctiveFactors: JSON.parse(loadFromStorage(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY, DEFAULT_CORRECTIVE_FACTORS))
       }
     }
 
@@ -246,6 +273,76 @@ module.exports = function (context) {
         const pcc = Math.round(walkableArea / areaPerPedestrianInMeters * rotationFactor);
         sel.select("#info-physical-carrying-capacity").text(pcc);
         storeInStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, rotationFactor);
+      });
+
+      // change corrective factor's value
+      sel.selectAll(".corrective-factor + div input").on("input", function (_, i) {
+        const areaPerPedestrian = parseFloat(sel.select("#info-area-per-pedestrian").property("value"));
+        const areaUnit = context.metadata.areaUnit;
+        const rotationFactor = parseFloat(sel.select("#info-rotation-factor").property("value"));
+        const areaPerPedestrianInMeters = convertArea(areaPerPedestrian, areaUnit, areaUnits.SQUARE_METERS);
+        const data = context.data.get('map');
+        const feature = data.features[id];
+        const id_hash = featureHash(feature);
+        const walkableArea = context.metadata.areas[id_hash].meters;
+        const pcc = walkableArea / areaPerPedestrianInMeters * rotationFactor;
+        let rcc = pcc;
+        sel.selectAll(".corrective-factor + div input").each(function() {
+          rcc *= parseFloat(this.value)
+        });
+        rcc = Math.round(rcc);
+        sel.select("#info-real-carrying-capacity").text(rcc);
+        const computedKey = computeStorageKey(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY);
+        const correctiveFactors = JSON.parse(context.storage.get(computedKey));
+        correctiveFactors[i].value = parseFloat(d3.event.target.value);
+        context.storage.set(computedKey, JSON.stringify(correctiveFactors));
+      });
+
+      // add corrective factor
+      sel.selectAll(".add-corrective-factor").on("click", function() {
+        const computedKey = computeStorageKey(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY);
+        const correctiveFactors = JSON.parse(context.storage.get(computedKey));
+        correctiveFactors.push({id: Math.round(Math.random() * 100), name: "Corrective Factor", value: 1});
+        context.storage.set(computedKey, JSON.stringify(correctiveFactors));
+        renderMetadata();
+      });
+
+      // remove corrective factor
+      sel.selectAll(".corrective-factor i.delete-invert").on("click", function(_, i) {
+        const computedKey = computeStorageKey(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY);
+        const correctiveFactors = JSON.parse(context.storage.get(computedKey));
+        correctiveFactors.splice(i, 1);
+        context.storage.set(computedKey, JSON.stringify(correctiveFactors));
+        renderMetadata();
+      });
+
+      // change corrective factor's name
+      sel.selectAll(".corrective-factor .cf-edit").on("click", function(_, i) {
+        const parentElement = d3.select(this.parentNode);
+
+        function toggleHide() {
+          parentElement.selectAll("*").each(function() {
+            const thisElement = d3.select(this);
+            thisElement.classed("hide", !thisElement.classed("hide"));
+          });  
+        }
+        toggleHide();
+
+        function save() {
+          const computedKey = computeStorageKey(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY);
+          const correctiveFactors = JSON.parse(context.storage.get(computedKey));
+          correctiveFactors[i].name = parentElement.select("textarea").property("value");
+          context.storage.set(computedKey, JSON.stringify(correctiveFactors));
+
+          renderMetadata();
+        }
+
+        parentElement.select("i.fa-check").on("click", save);
+        parentElement.select("textarea").on("keydown", function () {
+          if(d3.event.key === "Enter") {
+            save();
+          }
+        })
       });
     }
 

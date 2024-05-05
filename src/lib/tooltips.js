@@ -9,5 +9,10 @@ module.exports = {
     + "maximum number of visitors that can be physically "
     + "accomodated into the walkable area over some time. "
     + "The value is obtained by dividing 'Walkable Area' by 'Area per Pestrian' "
-    + "and multiplying the result by 'Rotation Factor'."
+    + "and multiplying the result by 'Rotation Factor'.",
+  "real-carrying-capacity": "Real Carrying Capacity: "
+    + "derived from PCC, applying corrective factors with different natures "
+    + "(e.g., physical, ecological, economical), specific to the location. "
+    + "These corrective factors should be numbers between 0 and 1. "
+    + "The value of RCC is obtained by multiplying 'PCC' by the corrective factors."
 };

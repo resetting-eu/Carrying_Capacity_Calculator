@@ -66,6 +66,42 @@
   height: 2.25em;
 }
 
+.corrective-factor {
+  display: flex;
+  gap: 0.5em;
+  align-items: flex-start;
+}
+
+.corrective-factor textarea {
+  max-width: 8em;
+}
+
+.metadata-grid > div.input.last-row {
+  border-bottom: var(--border-input);
+}
+
+.corrective-factor i {
+  align-self: center;
+  cursor: pointer;
+}
+
+.corrective-factor .cf-align-right {
+  margin-left: auto;
+}
+
+i.delete-invert {
+  color: #b81b1b;
+}
+
+i.delete-invert:hover {
+  color: #e25353;
+}
+
+.metadata-grid > div.add-corrective-factor {
+  border: 0;
+  grid-column: span 2;
+}
+
 .area-unit {
   margin-left: 0.3em;
   display: flex;
@@ -198,13 +234,15 @@ datalist {
 
 .add-row-button,
 .add-simplestyle-properties-button,
-.add-carrying-capacity-input-button {
+.add-carrying-capacity-input-button,
+.add-corrective-factor {
   color: #2980b9;
 }
 
 .add-row-button:hover,
 .add-simplestyle-properties-button:hover,
-.add-carrying-capacity-input-button:hover {
+.add-carrying-capacity-input-button:hover,
+.add-corrective-factor:hover {
   cursor: pointer;
   color: #199cf4;
 }
