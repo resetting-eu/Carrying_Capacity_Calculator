@@ -32,11 +32,10 @@ module.exports = function (context) {
     const data = context.data.get('map');
     const feature = data.features[id];
     const id_hash = featureHash(feature);
-    if(typeof context.metadata.areas[id_hash]?.meters === "number") {
-      expandMetadataWithCarryingCapacity(feature, context.metadata.areas[id_hash].meters);
-    } else {
-      if(feature.geometry.type === "Polygon") {
-        expandMetadataWithTotalArea(feature);
+    if(feature.geometry.type === "Polygon") {
+      expandMetadataWithTotalArea(feature);
+      if(typeof context.metadata.areas[id_hash]?.meters === "number") {
+        expandMetadataWithCarryingCapacity(feature, context.metadata.areas[id_hash].meters);
       }
     }
 
