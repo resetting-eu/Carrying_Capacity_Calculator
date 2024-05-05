@@ -35,7 +35,9 @@ module.exports = function (context) {
     if(typeof context.metadata.areas[id_hash]?.meters === "number") {
       expandMetadataWithCarryingCapacity(feature, context.metadata.areas[id_hash].meters);
     } else {
-      expandMetadataWithTotalArea(feature);
+      if(feature.geometry.type === "Polygon") {
+        expandMetadataWithTotalArea(feature);
+      }
     }
 
     function calculateWalkableArea() {
@@ -78,12 +80,13 @@ module.exports = function (context) {
     }
 
     function expandMetadataWithTotalArea(feature) {
+      sel.select(".metadata").remove(); // remove table element, we'll use grid
       const unitHTML = context.metadata.areaUnit.symbolHTML;
-      sel.select(".metadata").html(
-        '<tr><td>Area</td><td><span id="info-area">' +
+      sel.select(".metadata-grid").html(
+        '<div>Area</div><div class="right"><span id="info-area">' +
         convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
         '</span> <span class="info-area-unit">' + unitHTML + '</span>' +
-        '</td></tr>'
+        '</div>'
       );
     }
 
@@ -93,27 +96,23 @@ module.exports = function (context) {
       const {areaPerPedestrian, rotationFactor} = loadCarryingCapacityInputsFromStorage(id_hash);
       const areaPerPedestrianInSelectedUnit = convertArea(areaPerPedestrian, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
 
-      sel.select(".metadata").html(
-        '<tr><td>Area</td><td><span id="info-area">' +
-        convertArea(area(feature.geometry), areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
-        '</span> <span class="info-area-unit">' + unitHTML + '</span>' +
-        '</td></tr>' +
-        '<tr><td rowspan="2" class="align-middle">' +
+      sel.select(".metadata-grid").html(
+        sel.select(".metadata-grid").html() +
+        '<div class="merge row-with-gap">' +
         '<span class="tooltip-label" tooltip="walkable-area">Walkable Area</span>' +
-        '</td><td><span id="info-walkable-area">' +
+        '</div><div class="right"><span id="info-walkable-area">' +
         convertArea(walkable_meters, areaUnits.SQUARE_METERS, context.metadata.areaUnit).toFixed(2) +
         '</span> <span class="info-area-unit">' + unitHTML + '</span>' +
-        '</td></tr><tr><td>' +
+        '</div><div class="right row-with-gap">' +
         (walkable_meters / area(feature.geometry) * 100).toFixed(2) +
-        '%</td></tr>' +
-        '<tr class="space-row-top carrying-capacity-input">' +
-        '<td class="align-middle"><div class="carrying-capacity-input-cell"><span class="tooltip-label" tooltip="area-per-pedestrian">Area per Pedestrian</span></div></td>' +
-        '<td><div class="carrying-capacity-input-cell"><input value="' + areaPerPedestrianInSelectedUnit + '" id="info-area-per-pedestrian"></input> <span class="info-area-unit">' + unitHTML + '</span></div></td></tr>' +
-        '<tr class="carrying-capacity-input">' +
-        '<td class="align-middle"><div class="carrying-capacity-input-cell"><span class="tooltip-label" tooltip="rotation-factor">Rotation Factor</span></div></td>' +
-        '<td><div class="carrying-capacity-input-cell"><input id="info-rotation-factor" value="' + rotationFactor + '"></input></div></td></tr>' +
-        '<tr><td><span class="tooltip-label" tooltip="physical-carrying-capacity">PCC</span></td>' +
-        '<td><span id="info-physical-carrying-capacity">' + Math.round(walkable_meters / areaPerPedestrian * rotationFactor) + '</span> visitors</td></tr>'
+        '%</div>' +
+        '<div class="input"><span class="tooltip-label" tooltip="area-per-pedestrian">Area per Pedestrian</span></div>' +
+        '<div class="right input"><input value="' + areaPerPedestrianInSelectedUnit + '" id="info-area-per-pedestrian"></input> <span class="info-area-unit">' + unitHTML + '</span></div>' +
+        '<div class="input row-with-gap">' +
+        '<span class="tooltip-label" tooltip="rotation-factor">Rotation Factor</span></div>' +
+        '<div class="right input row-with-gap"><input id="info-rotation-factor" value="' + rotationFactor + '"></input></div>' +
+        '<div><span class="tooltip-label" tooltip="physical-carrying-capacity">PCC</span></div>' +
+        '<div class="right"><span id="info-physical-carrying-capacity">' + Math.round(walkable_meters / areaPerPedestrian * rotationFactor) + '</span> visitors</div>'
       );
       
       addCalculatorEvents();

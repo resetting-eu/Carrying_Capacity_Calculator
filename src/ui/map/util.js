@@ -371,6 +371,8 @@ function bindPopup(e, context, writable) {
       const id = featureHash(feature);
       walkable_meters = context.metadata.areas[id]?.meters;
 
+      info += '<div class="metadata-grid"></div>';
+
       info += '<button type="button" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)
         info += ' hide';

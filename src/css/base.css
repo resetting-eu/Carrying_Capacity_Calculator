@@ -517,9 +517,3 @@ input[type='text'] {
   opacity: 0.25;
   background: #444 url(spinner.gif) 50% 50% no-repeat;
 }
-
-/* Vertical align
-------------------------------------------------------- */
-.align-middle {
-  vertical-align: middle;
-}

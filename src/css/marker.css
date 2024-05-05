@@ -1,10 +1,12 @@
 .marker-properties,
-.metadata {
+.metadata,
+.metadata-grid {
   border-collapse: collapse;
   font-size: 11px;
   width: 100%;
   overflow: auto;
-  border-bottom: 1px solid #ccc;
+  --border-default: 1px solid #ccc;
+  border-bottom: var(--border-default);
 
   /* Equal to 6 rows */
   max-height: 189px;
@@ -14,6 +16,54 @@
   display: flex;
   flex-direction: column;
   gap: 0.75em;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.metadata-grid > div {
+  border-left: var(--border-default);
+  border-top: var(--border-default);
+  padding: 5px 10px;
+  align-content: center;
+}
+
+.metadata-grid > div.merge {
+  grid-row: span 2;
+}
+
+.metadata-grid > div.right {
+  border-left: 0;
+  border-right: var(--border-default);
+}
+
+.metadata-grid > div.row-with-gap {
+  margin-bottom: 10px;
+  border-bottom: var(--border-default);
+}
+
+.metadata-grid > div.input {
+  --border-input: 1px dotted #4396e2;
+  border-left: var(--border-input);
+  border-top: var(--border-input);
+}
+
+.metadata-grid > div.input.row-with-gap {
+  margin-bottom: 5px;
+  border-bottom: var(--border-input);
+}
+
+.metadata-grid > div.input.right {
+  border-left: 0;
+  border-right: var(--border-input);
+}
+
+.metadata-grid input {
+  border: var(--border-default);
+  max-width: 5em;
+  height: 2.25em;
 }
 
 .area-unit {
@@ -83,31 +133,6 @@
 .marker-properties tr:nth-child(even) th,
 .marker-properties tr:nth-child(even) td {
   background-color: #f7f7f7;
-}
-
-tr.space-row-top td {
-  padding-top: 10px !important;
-}
-
-.carrying-capacity-input-cell {
-  border: 1px dotted #4396e2;
-  padding: 5px;
-  height: 35px;
-}
-
-tr.carrying-capacity-input td {
-  border: 0;
-  padding: 0;
-}
-
-tr.carrying-capacity-input input {
-  border: 1px solid #ccc;
-  max-width: 5em;
-  height: 2.25em;
-}
-
-.metadata .action-row {
-  border: none;
 }
 
 .geojsonio-feature {
