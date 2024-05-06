@@ -6,7 +6,7 @@ const tooltips = require('./tooltips');
 
 const DEFAULT_AREA_PER_PEDESTRIAN = 1; // sq. meters
 const DEFAULT_ROTATION_FACTOR = 1;
-const DEFAULT_CORRECTIVE_FACTORS = JSON.stringify([{name: "Environment Factor", value: 0.54}]);
+const DEFAULT_CORRECTIVE_FACTORS = JSON.stringify([{name: "Corrective Factor", value: 1}]);
 const DEFAULT_MANAGEMENT_CAPACITY = 1;
 const AREA_PER_PEDESTRIAN_STORAGE_KEY = "area_per_pedestrian";
 const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
