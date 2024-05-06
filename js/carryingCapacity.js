@@ -1,10 +1,10 @@
 
-function calculateCarryingCapacity(features, bounds, options){
+function walkableArea(features, bounds, options){
     let LANE_WIDTH = 3;
     let RAIL_WIDTH = 3;
     let PARALLEL_PARKING_WIDTH = 2;
     let DIAGONAL_PARKING_WIDTH = 5;
-    let FLATTEN_MULTIPOLYGONS_BUILDING = false;
+    let FLATTEN_BUILDINGS = false;
 
     if(options.laneWidth)
         LANE_WIDTH = options.laneWidth;
@@ -14,6 +14,8 @@ function calculateCarryingCapacity(features, bounds, options){
         PARALLEL_PARKING_WIDTH = options.parallelWidth;
     if(options.diagonalWidth)
         DIAGONAL_PARKING_WIDTH = options.diagonalWidth;
+    if(options.flattenBuildings)
+        FLATTEN_BUILDINGS = true;
 
     // Filter features
     let roads = [];
@@ -36,10 +38,13 @@ function calculateCarryingCapacity(features, bounds, options){
     
     roads = processRoads(roads, LANE_WIDTH, DIAGONAL_PARKING_WIDTH, PARALLEL_PARKING_WIDTH);
 
-    buildings = addBufferMany(buildings, 0.05); 
+    buildings = addBufferMany(buildings, 0.01); 
+    if (FLATTEN_BUILDINGS)
+        buildings = flattenFeatures(buildings);
+    
     railways = addBufferMany(railways, RAIL_WIDTH / 2);
-    bridges = addBufferMany(bridges, 1);
-    waterBodies = addBufferMany(waterBodies, 0.5);
+    bridges = addBufferMany(bridges, 0.01);
+    waterBodies = addBufferMany(waterBodies, 0.05);
 
     //console.log("Data processed");
 
@@ -52,19 +57,44 @@ function calculateCarryingCapacity(features, bounds, options){
     let highLevelUnwalkablePolygons = roads.concat(railways);
     let unwalkablePolygons = lowLevelUnwalkablePolygons.concat(highLevelUnwalkablePolygons);
 
-    //console.log("Starting unwalkable polygons merge");
+    let processedPolygons = 0;
+    let totalPolygons = unwalkablePolygons.length;
+    let walkableAreaPolygon = bounds;
+    for(let f of unwalkablePolygons){
+        try{
+            walkableAreaPolygon = turf.difference(walkableAreaPolygon, f);   
+        }catch(error){
+            console.log("Error with feature:");
+            console.log(f);
+        }
+        processedPolygons ++;
+        /*if(options.progress){
+            options.progress.processedPolygons = processedPolygons;
+            options.progress.totalPolygons = totalPolygons;
+            options.progress.elapsedTime = Date.now() - options.progress.startTime;
+            if(options.progress.worker && processedPolygons % 10 == 0)
+                postMessage(options.progress);
+        }*/
 
-    //let unwalkablePolygonUnion = unionArray(unwalkablePolygons);
-
-    //console.log("Unwalkable polygons merged");
-    //console.log(unwalkablePolygonUnion);
-
-    let walkableAreaPolygon = differenceMany(bounds, unwalkablePolygons);
-
-    //console.log(walkableAreaPolygon);
-    //console.log("Walkable area calculated");
+    } 
 
     return walkableAreaPolygon;
+}
+
+function walkableAreaWithSubAreas(features, bounds, options){
+    let subAreas = divideArea(bounds, 8, horizontal=false);
+    let unwalkablePolygons = [];
+    for(let subArea of subAreas){
+        let subFeatures = [];
+        for(let feature of features){
+            if(turf.booleanIntersects(feature, subArea)){
+                subFeatures.push(feature);
+            }
+        }
+        unwalkablePolygons.push(walkableArea(subFeatures, subArea, options));
+    }
+    console.log(unwalkablePolygons);
+    return unionArray(unwalkablePolygons);
 }
 
 // Buffer functions
@@ -111,14 +141,16 @@ function isRoad(feature){
     feature.properties.highway != "pedestrian" &&
     feature.properties.highway != "footway" &&
     feature.properties.highway != "steps" &&
-    //feature.properties.highway != "cicleway" &&
+    feature.properties.highway != "cicleway" && // Debatable...
     feature.properties.highway != "path" &&
+    parseInt(feature.properties.layer) != -1 &&
     isLine(feature);
 }
 
 function isRailway(feature){   
     return feature.properties.railway && 
     feature.properties.railway != "razed" && 
+	parseInt(feature.properties.layer) != -1 &&
     isLine(feature);
 }
 
@@ -181,7 +213,6 @@ function processRoads(roads, laneWidth, diagonalWidth, parallelWidth){
     return processed;
 }
 
-// TODO
 function flattenFeatures(features){
     let flattened = [];
     for(let feature in features){
@@ -189,3 +220,44 @@ function flattenFeatures(features){
     }
     return flattened;
 }
+
+function divideArea(bounds, numAreas, horizontal=true){
+	        
+    let bbox = turf.bbox(bounds);
+    let minX = bbox[0];
+    let minY = bbox[1];
+    let maxX = bbox[2];
+    let maxY = bbox[3];
+    
+    let deltaX = (maxX - minX) / numAreas;
+    let deltaY = (maxY - minY) / numAreas;
+    let subAreas = [];
+    
+    
+    for(let i = 0; i < numAreas; i++){
+        let points;
+        if(horizontal){
+            points = [[
+                [minX + (i*deltaX), maxY],
+                [minX + ((i+1)*deltaX), maxY],
+                [minX + ((i+1)*deltaX), minY],
+                [minX + (i*deltaX), minY],
+                [minX + (i*deltaX), maxY]
+            ]];
+        }else{
+            points = [[
+                [minX, maxY - (i*deltaY)],
+                [maxX, maxY - (i*deltaY)],
+                [maxX, maxY - ((i+1)*deltaY)],
+                [minX, maxY - ((i+1)*deltaY)],
+                [minX, maxY - (i*deltaY)]
+            ]];
+        }
+        
+        let subArea = addBuffer(turf.polygon(points), 0.01);
+        subAreas.push(turf.intersect(subArea, bounds));
+    }
+
+    return subAreas;
+}
+
