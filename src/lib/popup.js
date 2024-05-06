@@ -76,7 +76,7 @@ module.exports = function (context) {
       const feature_bbox = bbox(feature);
       const bbox_ordered = [feature_bbox[1], feature_bbox[0], feature_bbox[3], feature_bbox[2]];
       const bbox_str = bbox_ordered.join(",");
-      const query = `[out:json];(way(${bbox_str}););(._;>;);out;`;
+      const query = `[out:json];(nwr(${bbox_str}););(._;>;);out;`;
       const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
 
       fetch(overpassEndpoint, {
