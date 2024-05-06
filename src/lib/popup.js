@@ -1,5 +1,9 @@
 const area = require('@turf/area').default;
+const bbox = require('@turf/bbox').default;
+const {union} = require('@turf/turf');
 const {createPopper, flip} = require('@popperjs/core');
+const osmtogeojson = require('osmtogeojson');
+const run = require('./carrying_capacity/run');
 const featureHash = require('./feature_hash');
 const {areaUnits, convertArea} = require('./area_units');
 const tooltips = require('./tooltips');
@@ -12,6 +16,14 @@ const AREA_PER_PEDESTRIAN_STORAGE_KEY = "area_per_pedestrian";
 const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
 const CORRECTIVE_FACTORS_STORAGE_KEY = "corrective_factors";
 const MANAGEMENT_CAPACITY_STORAGE_KEY = "management_capacity";
+
+function unionAll(features) {
+  let res = features[0];
+  for(let i = 1; i < features.length; ++i) {
+    res = union(res, features[i]);
+  }
+  return res;
+}
 
 module.exports = function (context) {
   return function (e, id) {
@@ -61,29 +73,56 @@ module.exports = function (context) {
       const id_hash = featureHash(feature);
       context.metadata.areas[id_hash] = {meters: "calculating"};
 
-      fetch("http://localhost:5000/usable_area", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(feature)
+      const feature_bbox = bbox(feature);
+      const bbox_ordered = [feature_bbox[1], feature_bbox[0], feature_bbox[3], feature_bbox[2]];
+      const bbox_str = bbox_ordered.join(",");
+      const query = `[out:json];(way(${bbox_str}););(._;>;);out;`;
+      const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
+
+      fetch(overpassEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({ data: query })
       })
-      .then(r => r.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error on overpass call! Status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(j => {
-        const walkable_meters = area(j);
-        context.metadata.areas[id_hash] = {feature: j, meters: walkable_meters};
-        
-        calculating.classed("hide", true);
+        const osm_geojson = osmtogeojson(j);
+        console.log(osm_geojson);
 
-        expandMetadataWithCarryingCapacity(feature, walkable_meters);
+        const options = {
+          railWidth: 3,
+          laneWidth: 3,
+          diagonalWidth: 3,
+          parallelWidth: 3
+        };
 
-        context.map.overlay.addFeature(context, id_hash);
+        run(navigator.hardwareConcurrency, osm_geojson.features, feature, options, values => {
+          const feature_walkable = unionAll(values);
+          const walkable_meters = area(feature_walkable);
+          context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters};
+          
+          calculating.classed("hide", true);
+
+          expandMetadataWithCarryingCapacity(feature, walkable_meters);
+
+          context.map.overlay.addFeature(context, id_hash);
+        });
       })
       .catch(e => {
         console.error(e);
         delete context.metadata.areas[id_hash];
 
-        sel.selectAll(".metadata tr:not(:first-child)").remove();
+        sel.selectAll(".metadata-grid *").remove();
         calculating.classed("hide", true);
         button.classed("hide", false);
+        expandMetadataWithTotalArea(feature);
       });
     }
 
