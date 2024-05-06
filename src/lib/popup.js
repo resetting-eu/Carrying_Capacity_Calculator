@@ -303,9 +303,17 @@ module.exports = function (context) {
         const feature = data.features[id];
         const id_hash = featureHash(feature);
         const walkableArea = context.metadata.areas[id_hash].meters;
-        const pcc = Math.round(walkableArea / areaPerPedestrianInMeters * rotationFactor);
-        sel.select("#info-physical-carrying-capacity").text(pcc);
+        const pcc = walkableArea / areaPerPedestrianInMeters * rotationFactor;
+        sel.select("#info-physical-carrying-capacity").text(Math.round(pcc));
         storeInStorage(id_hash, AREA_PER_PEDESTRIAN_STORAGE_KEY, areaPerPedestrianInMeters);
+        let rcc = pcc;
+        sel.selectAll(".corrective-factor + div input").each(function() {
+          rcc *= parseFloat(this.value)
+        });
+        sel.select("#info-real-carrying-capacity").text(Math.round(rcc));
+        const managementCapacity = parseFloat(d3.select("#info-management-capacity").property("value"));
+        const ecc = Math.round(rcc * managementCapacity);
+        sel.select("#info-effective-carrying-capacity").text(ecc);
       });
 
       // change rotation factor
@@ -318,9 +326,17 @@ module.exports = function (context) {
         const feature = data.features[id];
         const id_hash = featureHash(feature);
         const walkableArea = context.metadata.areas[id_hash].meters;
-        const pcc = Math.round(walkableArea / areaPerPedestrianInMeters * rotationFactor);
-        sel.select("#info-physical-carrying-capacity").text(pcc);
+        const pcc = walkableArea / areaPerPedestrianInMeters * rotationFactor;
+        sel.select("#info-physical-carrying-capacity").text(Math.round(pcc));
         storeInStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, rotationFactor);
+        let rcc = pcc;
+        sel.selectAll(".corrective-factor + div input").each(function() {
+          rcc *= parseFloat(this.value)
+        });
+        sel.select("#info-real-carrying-capacity").text(Math.round(rcc));
+        const managementCapacity = parseFloat(d3.select("#info-management-capacity").property("value"));
+        const ecc = Math.round(rcc * managementCapacity);
+        sel.select("#info-effective-carrying-capacity").text(ecc);
       });
 
       // change corrective factor's value
@@ -338,12 +354,14 @@ module.exports = function (context) {
         sel.selectAll(".corrective-factor + div input").each(function() {
           rcc *= parseFloat(this.value)
         });
-        rcc = Math.round(rcc);
-        sel.select("#info-real-carrying-capacity").text(rcc);
+        sel.select("#info-real-carrying-capacity").text(Math.round(rcc));
         const computedKey = computeStorageKey(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY);
         const correctiveFactors = JSON.parse(context.storage.get(computedKey));
         correctiveFactors[i].value = parseFloat(d3.event.target.value);
         context.storage.set(computedKey, JSON.stringify(correctiveFactors));
+        const managementCapacity = parseFloat(d3.select("#info-management-capacity").property("value"));
+        const ecc = Math.round(rcc * managementCapacity);
+        sel.select("#info-effective-carrying-capacity").text(ecc);
       });
 
       // add corrective factor
