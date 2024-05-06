@@ -14,5 +14,10 @@ module.exports = {
     + "derived from PCC, applying corrective factors with different natures "
     + "(e.g., physical, ecological, economical), specific to the location. "
     + "These corrective factors should be numbers between 0 and 1. "
-    + "The value of RCC is obtained by multiplying 'PCC' by the corrective factors."
+    + "The value of RCC is obtained by multiplying 'PCC' by the corrective factors.",
+  "management-capacity": "This variable is often determined by the adequacy "
+    + "of the available infrastructure, equipment, and staff for the tourism activity.",
+  "effective-carrying-capacity": "Effective Carrying Capacity: "
+    + "the final stage of TCC (Tourism Carrying Capacity). "
+    + "Its value is determined by multiplying 'Management Capacity' by 'RCC'."
 };

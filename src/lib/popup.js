@@ -7,9 +7,11 @@ const tooltips = require('./tooltips');
 const DEFAULT_AREA_PER_PEDESTRIAN = 1; // sq. meters
 const DEFAULT_ROTATION_FACTOR = 1;
 const DEFAULT_CORRECTIVE_FACTORS = JSON.stringify([{name: "Environment Factor", value: 0.54}]);
+const DEFAULT_MANAGEMENT_CAPACITY = 1;
 const AREA_PER_PEDESTRIAN_STORAGE_KEY = "area_per_pedestrian";
 const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
 const CORRECTIVE_FACTORS_STORAGE_KEY = "corrective_factors";
+const MANAGEMENT_CAPACITY_STORAGE_KEY = "management_capacity";
 
 module.exports = function (context) {
   return function (e, id) {
@@ -99,8 +101,10 @@ module.exports = function (context) {
     function expandMetadataWithCarryingCapacity(feature, walkable_meters) {
       const unitHTML = context.metadata.areaUnit.symbolHTML;
 
-      const {areaPerPedestrian, rotationFactor, correctiveFactors} = loadCarryingCapacityInputsFromStorage(id_hash);
+      const {areaPerPedestrian, rotationFactor, correctiveFactors, managementCapacity} = loadCarryingCapacityInputsFromStorage(id_hash);
       const areaPerPedestrianInSelectedUnit = convertArea(areaPerPedestrian, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
+
+      const correctiveFactorsResponse = correctiveFactorsHtml(correctiveFactors, areaPerPedestrian, rotationFactor);
 
       sel.select(".metadata-grid").html(
         sel.select(".metadata-grid").html() +
@@ -119,7 +123,11 @@ module.exports = function (context) {
         '<div class="right input row-with-gap"><input id="info-rotation-factor" value="' + rotationFactor + '"></input></div>' +
         '<div class="row-with-gap"><span class="tooltip-label" tooltip="physical-carrying-capacity">PCC</span></div>' +
         '<div class="right row-with-gap"><span id="info-physical-carrying-capacity">' + Math.round(walkable_meters / areaPerPedestrian * rotationFactor) + '</span> visitors</div>' +
-        correctiveFactorsHtml(correctiveFactors, areaPerPedestrian, rotationFactor)
+        correctiveFactorsResponse.html +
+        '<div class="input row-with-gap"><span class="tooltip-label" tooltip="management-capacity">Management Capacity</span></div>' +
+        '<div class="right input row-with-gap"><input id="info-management-capacity" value="' + managementCapacity + '"></input></div>' +
+        '<div><span class="tooltip-label" tooltip="effective-carrying-capacity">ECC</span></div>' +
+        '<div class="right"><span id="info-effective-carrying-capacity">' + Math.round(correctiveFactorsResponse.rcc * managementCapacity) + '</span> visitors</div>'
       );
       
       addCalculatorEvents();
@@ -140,16 +148,17 @@ module.exports = function (context) {
       }
       res +=
         '<div class="add-corrective-factor"><span class="fa-solid fa-plus"></span> Add Corrective Factor</div>' +
-        '<div><span class="tooltip-label" tooltip="real-carrying-capacity">RCC</span></div>' +
-        '<div class="right"><span id="info-real-carrying-capacity">' + Math.round(rcc) + '</span> visitors</div>';
-      return res;
+        '<div class="row-with-gap"><span class="tooltip-label" tooltip="real-carrying-capacity">RCC</span></div>' +
+        '<div class="right row-with-gap"><span id="info-real-carrying-capacity">' + Math.round(rcc) + '</span> visitors</div>';
+      return {html: res, rcc};
     }
 
     function loadCarryingCapacityInputsFromStorage(id_hash) {
       return {
         areaPerPedestrian: loadFromStorage(id_hash, AREA_PER_PEDESTRIAN_STORAGE_KEY, DEFAULT_AREA_PER_PEDESTRIAN),
         rotationFactor: loadFromStorage(id_hash, ROTATION_FACTOR_STORAGE_KEY, DEFAULT_ROTATION_FACTOR),
-        correctiveFactors: JSON.parse(loadFromStorage(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY, DEFAULT_CORRECTIVE_FACTORS))
+        correctiveFactors: JSON.parse(loadFromStorage(id_hash, CORRECTIVE_FACTORS_STORAGE_KEY, DEFAULT_CORRECTIVE_FACTORS)),
+        managementCapacity: loadFromStorage(id_hash, MANAGEMENT_CAPACITY_STORAGE_KEY, DEFAULT_MANAGEMENT_CAPACITY)
       }
     }
 
@@ -343,6 +352,28 @@ module.exports = function (context) {
             save();
           }
         })
+      });
+
+      // change management capacity
+      sel.selectAll("#info-management-capacity").on("input", function (_, i) {
+        const areaPerPedestrian = parseFloat(sel.select("#info-area-per-pedestrian").property("value"));
+        const areaUnit = context.metadata.areaUnit;
+        const rotationFactor = parseFloat(sel.select("#info-rotation-factor").property("value"));
+        const areaPerPedestrianInMeters = convertArea(areaPerPedestrian, areaUnit, areaUnits.SQUARE_METERS);
+        const data = context.data.get('map');
+        const feature = data.features[id];
+        const id_hash = featureHash(feature);
+        const walkableArea = context.metadata.areas[id_hash].meters;
+        const pcc = walkableArea / areaPerPedestrianInMeters * rotationFactor;
+        let rcc = pcc;
+        sel.selectAll(".corrective-factor + div input").each(function() {
+          rcc *= parseFloat(this.value)
+        });
+        const managementCapacity = parseFloat(d3.event.target.value);
+        const ecc = Math.round(rcc * managementCapacity);
+        sel.select("#info-effective-carrying-capacity").text(ecc);
+        const computedKey = computeStorageKey(id_hash, MANAGEMENT_CAPACITY_STORAGE_KEY);
+        context.storage.set(computedKey, managementCapacity);
       });
     }
 
