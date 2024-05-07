@@ -379,10 +379,10 @@ function bindPopup(e, context, writable) {
       info += '">Calculate carrying capacity</button>';
 
       
-      info += '<div id="calculating" class="center';
-      if(walkable_meters !== "calculating") 
+      info += '<div id="calculating-' + id + '" class="center';
+      if(walkable_meters !== "calculating")
         info += ' hide';
-      info += '">Calculating carrying capacity...</div>';
+      info += '">Fetching from OpenStreetMap...</div>';
 
       info +=
         '<div class="area-unit">' +

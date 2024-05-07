@@ -1,3 +1,4 @@
+const turf = require('@turf/turf');
 
 function calculateCarryingCapacity(features, bounds, options, workerId, progressCallback){
     let LANE_WIDTH = 3;
@@ -206,3 +207,7 @@ function flattenFeatures(features){
     }
     return flattened;
 }
+
+module.exports = {
+    calculateCarryingCapacity
+};

@@ -17,14 +17,6 @@ const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
 const CORRECTIVE_FACTORS_STORAGE_KEY = "corrective_factors";
 const MANAGEMENT_CAPACITY_STORAGE_KEY = "management_capacity";
 
-function unionAll(features) {
-  let res = features[0];
-  for(let i = 1; i < features.length; ++i) {
-    res = union(res, features[i]);
-  }
-  return res;
-}
-
 module.exports = function (context) {
   return function (e, id) {
     const sel = d3.select(e.target._content);
@@ -61,16 +53,12 @@ module.exports = function (context) {
     }
 
     function calculateWalkableArea() {
-      const data = context.data.get('map');
-      const feature = data.features[id];
-
       const button = sel.select(".calculate-carrying-capacity-button");
       button.classed("hide", true);
 
-      const calculating = sel.select("#calculating");
+      const calculating = sel.select("#calculating-" + id_hash);
       calculating.classed("hide", false);
 
-      const id_hash = featureHash(feature);
       context.metadata.areas[id_hash] = {meters: "calculating"};
 
       const feature_bbox = bbox(feature);
@@ -103,8 +91,7 @@ module.exports = function (context) {
           parallelWidth: 3
         };
 
-        run(navigator.hardwareConcurrency, osm_geojson.features, feature, options, values => {
-          const feature_walkable = unionAll(values);
+        run(navigator.hardwareConcurrency * 2, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
           context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters};
           
