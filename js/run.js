@@ -44,6 +44,7 @@ function run(numThreads, progressElementID, features, bounds, options){
 
             promises.push(new Promise(function(resolve) {
                 let worker = new Worker("worker.js");
+                let id = workerID;
                 worker.postMessage({
                     features: subFeatures,
                     bounds: area,
@@ -56,6 +57,8 @@ function run(numThreads, progressElementID, features, bounds, options){
                         progress += event.data;
                         showProgress(progress, progressElementID);  
                     }else{
+                        console.log("Worker "+ id+":");
+                        console.log(event.data);
                         resolve(event.data); 
                     }
                 };
@@ -71,6 +74,7 @@ function run(numThreads, progressElementID, features, bounds, options){
                 result = unionArray(values);
             }catch(error){
                 console.log("Geo errors... applying buffers")
+                console.log(values);
                 let buffered = values.map(value => addBuffer(value, -0.05));
                 result = unionArray(buffered);
             }

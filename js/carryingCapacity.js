@@ -76,8 +76,10 @@ function walkableArea(features, bounds, options){
             let numSubAreas = options.progress.numSubAreas;
             if(options.progress.worker && processedPolygons % 10 == 0){
                 let progress = ((processedPolygons / totalPolygons) * 100) / (numWorkers * numSubAreas);
-                postMessage(progress); 
-                processedPolygons = 0;
+                if(!isNaN(progress)){
+                    postMessage(progress); 
+                    processedPolygons = 0;
+                }
             }
                 
         }
@@ -87,7 +89,10 @@ function walkableArea(features, bounds, options){
         let numSubAreas = options.progress.numSubAreas;
         if(options.progress.worker){
             let progress = ((processedPolygons / totalPolygons) * 100) / (numWorkers * numSubAreas);
-            postMessage(progress); 
+            if(!isNaN(progress)){
+                postMessage(progress); 
+            }
+            
         }        
     } 
 
