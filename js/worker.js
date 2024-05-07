@@ -2,13 +2,17 @@ importScripts("turf.js", "carryingCapacity.js");
 self.onmessage = function (event) {
     console.log('Started worker');
     
-    if(event.data.largestArea){
-        let progress = {"progress": true, 
-        "worker": true, 
-        "processedPolygons": 0, 
-        "totalPolygons": 0,
-        "startTime": Date.now(),
-        "elapsedTime": 0};
+    if(event.data.largestArea || true){
+        let progress = {
+            "progress": true, 
+            "worker": true, 
+            "processedPolygons": 0, 
+            "totalPolygons": 0,
+            "startTime": Date.now(),
+            "elapsedTime": 0,
+            "numWorkers": event.data.numWorkers,
+            "numSubAreas": 8
+        };
         event.data.options.progress = progress;
     }
     

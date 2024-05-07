@@ -1,10 +1,6 @@
-var heaviestThreadProgress = undefined;
-var processedPolygons = 0;
-var totalPolygons = 0;
-
 function run(numThreads, progressElementID, features, bounds, options){
-    processedPolygons = 0;
-    totalPolygons = 0;      
+  
+    let progress = 0;   
     if (typeof(Worker) !== "undefined") {
         console.log("This browser accepts workers");
         let startTimestamp = Date.now();
@@ -42,7 +38,6 @@ function run(numThreads, progressElementID, features, bounds, options){
             let subFeatures = [];
             for(let feature of features){
                 if(turf.booleanIntersects(feature, area)){
-                    totalPolygons++;
                     subFeatures.push(feature);
                 }
             }
@@ -53,13 +48,13 @@ function run(numThreads, progressElementID, features, bounds, options){
                     features: subFeatures,
                     bounds: area,
                     options: options,
-                    largestArea: workerID == maxAreaID
+                    largestArea: workerID == maxAreaID,
+                    numWorkers: numThreads
                 });
                 worker.onmessage = function (event) {
-                    if(event.data.progress){ 
-                        processedPolygons = event.data;
-                        showProgress(progressElementID);
-                        console.log(event.data);
+                    if(!isNaN(event.data)){ 
+                        progress += event.data;
+                        showProgress(progress, progressElementID);  
                     }else{
                         resolve(event.data); 
                     }
@@ -70,7 +65,7 @@ function run(numThreads, progressElementID, features, bounds, options){
 
         Promise.all(promises).then((values) => {
             let time = (Date.now() - startTimestamp)/1000;
-            console.log("Elapsed time: " + time);
+            showProgress(100, progressElementID);
             let result;
             try{
                 result = unionArray(values);
@@ -79,6 +74,7 @@ function run(numThreads, progressElementID, features, bounds, options){
                 let buffered = values.map(value => addBuffer(value, -0.05));
                 result = unionArray(buffered);
             }
+            console.log("Elapsed time: " + time);
             console.log(result);
             return result;
         })
@@ -91,9 +87,9 @@ function run(numThreads, progressElementID, features, bounds, options){
     
 }
 
-function showProgress(progressElementID){
+function showProgress(progress, progressElementID){
     let progressElement = document.getElementById(progressElementID);
-    progressElement.innerHTML = Math.floor((processedPolygons/totalPolygons)*100) + "%";
+    progressElement.innerHTML = Math.floor(progress) + "%";
 
     /*if(heaviestThreadProgress){
         let total = heaviestThreadProgress.totalPolygons;

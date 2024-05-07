@@ -68,14 +68,27 @@ function walkableArea(features, bounds, options){
             console.log(f);
         }
         processedPolygons ++;
-        /*if(options.progress){
-            options.progress.processedPolygons = processedPolygons;
+        if(options.progress){
+            /*options.progress.processedPolygons = processedPolygons;
             options.progress.totalPolygons = totalPolygons;
-            options.progress.elapsedTime = Date.now() - options.progress.startTime;
-            if(options.progress.worker && processedPolygons % 10 == 0)
-                postMessage(options.progress);
-        }*/
-
+            options.progress.elapsedTime = Date.now() - options.progress.startTime;*/
+            let numWorkers = options.progress.numWorkers;
+            let numSubAreas = options.progress.numSubAreas;
+            if(options.progress.worker && processedPolygons % 10 == 0){
+                let progress = ((processedPolygons / totalPolygons) * 100) / (numWorkers * numSubAreas);
+                postMessage(progress); 
+                processedPolygons = 0;
+            }
+                
+        }
+    }
+    if(options.progress){
+        let numWorkers = options.progress.numWorkers;
+        let numSubAreas = options.progress.numSubAreas;
+        if(options.progress.worker){
+            let progress = ((processedPolygons / totalPolygons) * 100) / (numWorkers * numSubAreas);
+            postMessage(progress); 
+        }        
     } 
 
     return walkableAreaPolygon;
@@ -143,6 +156,7 @@ function isRoad(feature){
     feature.properties.highway != "steps" &&
     feature.properties.highway != "cicleway" && // Debatable...
     feature.properties.highway != "path" &&
+    //feature.properties.highway != "living_street" &&
     parseInt(feature.properties.layer) != -1 &&
     isLine(feature);
 }
