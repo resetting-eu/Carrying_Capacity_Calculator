@@ -71,13 +71,22 @@ function run(numThreads, progressElementID, features, bounds, options){
         Promise.all(promises).then((values) => {
             let time = (Date.now() - startTimestamp)/1000;
             console.log("Elapsed time: " + time);
-            console.log(unionArray(values));
+            let result;
+            try{
+                result = unionArray(values);
+            }catch(error){
+                console.log("Geo errors... applying buffers")
+                let buffered = values.map(value => addBuffer(value, -0.05));
+                result = unionArray(buffered);
+            }
+            console.log(result);
+            return result;
         })
 
 
     } else {
         console.log("This browser does not support workers");
-        walkableAreaWithSubAreas(features, bounds, options);
+        return walkableAreaWithSubAreas(features, bounds, options);
     }
     
 }
