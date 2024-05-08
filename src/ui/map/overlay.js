@@ -35,8 +35,8 @@ function refreshOverlay(context, deck) {
       new GeoJsonLayer({
         id: "GeoJsonLayer",
         data: features,
-        getFillColor: [255, 0, 0, 100],
-        getLineColor: [255, 0, 0, 255]
+        getFillColor: [100, 50, 0, 100],
+        getLineColor: [100, 50, 0, 255]
       })
   ]});
 }
