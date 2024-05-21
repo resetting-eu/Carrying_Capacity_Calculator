@@ -126,16 +126,21 @@ function unionArray(features){
 function isRoad(feature){   
     return feature.properties.highway &&
     feature.properties.highway != "pedestrian" &&
+    feature.properties.foot != "designated" &&
+    !feature.properties.footway &&
     feature.properties.highway != "footway" &&
     feature.properties.highway != "steps" &&
-    //feature.properties.highway != "cicleway" &&
+    feature.properties.highway != "cycleway" && // Debatable...
     feature.properties.highway != "path" &&
+    //feature.properties.highway != "living_street" &&
+    parseInt(feature.properties.layer) != -1 &&
     isLine(feature);
 }
 
 function isRailway(feature){   
     return feature.properties.railway && 
     feature.properties.railway != "razed" && 
+    parseInt(feature.properties.layer) != -1 &&
     isLine(feature);
 }
 
@@ -146,7 +151,10 @@ function isBuilding(feature){
 }
 
 function isWater(feature){
-    return feature.properties.natural == "water" && 
+    return (feature.properties.natural == "water" ||
+	feature.properties.place == "sea" ||
+	feature.properties.natural == "bay" ||
+	features.properties.natural	== "strait") && 
     isPolygon(feature); 
 }
 
