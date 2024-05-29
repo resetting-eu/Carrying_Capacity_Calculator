@@ -154,7 +154,7 @@ function isWater(feature){
     return (feature.properties.natural == "water" ||
 	feature.properties.place == "sea" ||
 	feature.properties.natural == "bay" ||
-	features.properties.natural	== "strait") && 
+	feature.properties.natural == "strait") && 
     isPolygon(feature); 
 }
 
