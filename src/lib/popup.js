@@ -37,6 +37,8 @@ module.exports = function (context) {
 
     sel.select('#area-unit-select').on('change', changeAreaUnit);
 
+    sel.selectAll("input[type=checkbox]").property("checked", false);
+
     const data = context.data.get('map');
     const feature = data.features[id];
     const id_hash = featureHash(feature);
@@ -64,7 +66,8 @@ module.exports = function (context) {
       const feature_bbox = bbox(feature);
       const bbox_ordered = [feature_bbox[1], feature_bbox[0], feature_bbox[3], feature_bbox[2]];
       const bbox_str = bbox_ordered.join(",");
-      const query = `[out:json];(nwr(${bbox_str}););(._;>;);out;`;
+      const query_old = `[out:json];(nwr(${bbox_str}););(._;>;);out;`;
+      const query = `[out:json];(nwr[!boundary][!route](${bbox_str}););(._;>;);out;`;
       const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
 
       fetch(overpassEndpoint, {
@@ -84,22 +87,31 @@ module.exports = function (context) {
         const osm_geojson = osmtogeojson(j);
         console.log(osm_geojson);
 
+        const grass = sel.select(".calculate-carrying-capacity-button");
+
         const options = {
           railWidth: 3,
           laneWidth: 3,
-          diagonalWidth: 3,
-          parallelWidth: 3
+          diagonalWidth: 2,
+          parallelWidth: 5,
+          flattenBuildings: sel.select("#buildings").node().checked,
+          walkableRoads: sel.select("#roads").node().checked,
+          unwalkableGrass: sel.select("#grass").node().checked
         };
+
+        console.log(options);
 
         run(navigator.hardwareConcurrency * 2, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
           context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters};
           
           calculating.classed("hide", true);
+          sel.select("#ccc-options").classed("hide", true);
 
           expandMetadataWithCarryingCapacity(feature, walkable_meters);
 
           context.map.overlay.addFeature(context, id_hash);
+          sel.select("#ccc-options").classed("hide", true);
         });
       })
       .catch(e => {
@@ -109,6 +121,7 @@ module.exports = function (context) {
         sel.selectAll(".metadata-grid *").remove();
         calculating.classed("hide", true);
         button.classed("hide", false);
+
         expandMetadataWithTotalArea(feature);
       });
     }

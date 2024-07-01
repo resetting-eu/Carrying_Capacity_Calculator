@@ -22,7 +22,7 @@
   <meta name="twitter:site" content="@mapbox" />
   <meta name="twitter:creator" content="@mapbox" />
   <meta property="og:url" content="https://geojson.io" />
-  <meta property="og:title" content="geojson.io | powered by Mapbox" />
+  <meta property="og:title" content="Carrying Capacity Calculator (CCC)) | powered by geojson.io and Mapbox" />
   <meta property="og:description" content="A quick, simple tool for creating, viewing, and sharing spatial data." />
   <meta property="og:image" content="/img/twitter-card-image.png" />
 
@@ -76,16 +76,25 @@
   </style>
 </head>
 
+<!-- Google tag (gtag.js) -->
+<script async src=https://www.googletagmanager.com/gtag/js?id=G-N8J0X3CR8B></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-N8J0X3CR8B');
+</script>
+
 <body id="geojsonio-body" class="h-full">
   <div class="geojsonio flex flex-col h-full">
     <div class="text-white bg-mb-gray-dark font-sans px-3 flex">
       <div class="font-extrabold flex items-center tracking-wide text-base">
-        Carrying Capacity Calculator (a geojson.io fork)
+        Carrying Capacity Calculator (CCC or C3)
       </div>
       <div class="flex-grow flex justify-end">
         <div style="height: 42px"></div>
         <div class="flex items-center bg-pink" style="font-size: 10px">
-          powered by
+          powered by geojson.io and
           <div class="pr-3">
             <div class="bg-no-repeat bg-center ml-2" style="
                   height: 18px;
@@ -134,14 +143,6 @@
     );
     ga("create", "UA-12158002-18", "auto");
     ga("send", "pageview");
-  </script>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3K6EEFGNP0"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G - 3K6EEFGNP0');
   </script>
 </body>
 

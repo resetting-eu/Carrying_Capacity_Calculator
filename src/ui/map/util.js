@@ -372,6 +372,18 @@ function bindPopup(e, context, writable) {
       walkable_meters = context.metadata.areas[id]?.meters;
 
       info += '<div class="metadata-grid"></div>';
+      
+      if(walkable_meters !== undefined)
+        info += '<div id="ccc-options" class="hide">'
+      else
+        info += '<div id="ccc-options" style="overflow-y: scroll" >'
+
+      info += '<div class="center "><b>Options</b></div>';
+
+      info += '<div> <input type="checkbox" id="buildings" name="buildings" /> <label for="buildings">Remove private building areas</label></div>'
+      info += '<div> <input type="checkbox" id="roads" name="roads" /> <label for="roads">Classify roads as walkable</label></div>'
+      info += '<div> <input type="checkbox" id="grass" name="grass" /> <label for="grass">Classify grass as unwalkable</label></div>'
+      info += '</div>'
 
       info += '<button type="button" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)

@@ -56,7 +56,7 @@ function run(numThreads, progressElementID, features, bounds, options, callback)
                     workerId: workerId
                 });
                 worker.onmessage = function (event) {
-                    if(event.data.progress){ 
+                    if(event.data && event.data.progress){ 
                         const {processedPolygons, totalPolygons} = event.data;
                         const id = event.data.workerId;
                         workersProgress[id] = {processedPolygons, totalPolygons};
