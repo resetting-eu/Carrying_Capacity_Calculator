@@ -404,6 +404,14 @@ function bindPopup(e, context, writable) {
           `<option value="${o.name}" ${o === context.metadata.areaUnit ? "selected" : ""}>${o.name}</option>`
         ).join("") +
         '</select></div>';
+      
+        info += '<div class="download';
+        if(walkable_meters === undefined || walkable_meters === "calculating")
+          info += ' hide';
+        info += '">' +
+          '<button type="button" id="download-geojson" class="minor">Download GeoJSON</button>' +
+          '<button type="button" id="download-csv" class="minor">Download CSV</button>' +
+          '</div>'
     }
   }
 

@@ -39,6 +39,9 @@ module.exports = function (context) {
 
     sel.selectAll("input[type=checkbox]").property("checked", false);
 
+    sel.select('#download-geojson').on('click', downloadGeoJSON);
+    sel.select('#download-csv').on('click', downloadCSV);
+
     const data = context.data.get('map');
     const feature = data.features[id];
     const id_hash = featureHash(feature);
@@ -112,6 +115,7 @@ module.exports = function (context) {
 
           context.map.overlay.addFeature(context, id_hash);
           sel.select("#ccc-options").classed("hide", true);
+          sel.select(".download").classed("hide", false);
         });
       })
       .catch(e => {
@@ -432,6 +436,55 @@ module.exports = function (context) {
         const computedKey = computeStorageKey(id_hash, MANAGEMENT_CAPACITY_STORAGE_KEY);
         context.storage.set(computedKey, managementCapacity);
       });
+    }
+
+    function downloadGeoJSON() {
+      const walkableAreaFeature = context.metadata.areas[id_hash].feature;
+      const fileContent = JSON.stringify(walkableAreaFeature);
+      const blob = new Blob([fileContent], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'walkable_area.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function downloadCSV() {
+      const {areaPerPedestrian, rotationFactor, correctiveFactors, managementCapacity} = loadCarryingCapacityInputsFromStorage(id_hash);
+      
+      const totalArea = area(feature);
+      const walkableArea = context.metadata.areas[id_hash].meters;
+      const walkableAreaPercent = (walkableArea / totalArea * 100).toFixed(2);
+      const pcc = walkableArea / areaPerPedestrian * rotationFactor;
+      let rcc = pcc;
+      for(const {value} of correctiveFactors) {
+        rcc *= value;
+      }
+      const ecc = managementCapacity * rcc;
+
+      let csv =
+`area (meters),${totalArea}
+walkable area (meters),${walkableArea}
+walkable area (%),${walkableAreaPercent}
+area per pedestrian (sq. meters),${areaPerPedestrian}
+rotation factor,${rotationFactor}
+pcc,${pcc}\n`;
+      for(const {value, name} of correctiveFactors) {
+        csv += `${name},${value}\n`;
+      }
+      csv +=
+`rcc,${rcc}
+management capacity,${managementCapacity}
+ecc,${ecc}\n`;
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'carrying_capacity_values.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     function clickClose() {

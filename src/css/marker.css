@@ -191,6 +191,11 @@ datalist {
   height: 150px;
 }
 
+.download {
+  display: flex;
+  justify-content: space-between;
+}
+
 /* Tabs
 ------------------------------------------------------- */
 .tabs-ui {
