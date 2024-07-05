@@ -106,7 +106,7 @@ module.exports = function (context) {
 
         run(navigator.hardwareConcurrency * 2, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
-          context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters};
+          context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters, options};
           
           calculating.classed("hide", true);
           sel.select("#ccc-options").classed("hide", true);
@@ -451,11 +451,18 @@ module.exports = function (context) {
     }
 
     function downloadCSV() {
+      const {flattenBuildings, walkableRoads, unwalkableGrass} = context.metadata.areas[id_hash].options;
+
       const {areaPerPedestrian, rotationFactor, correctiveFactors, managementCapacity} = loadCarryingCapacityInputsFromStorage(id_hash);
-      
+
+      const unitName = context.metadata.areaUnit.name;
       const totalArea = area(feature);
+      const totalAreaInSelectedUnit = convertArea(totalArea, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
       const walkableArea = context.metadata.areas[id_hash].meters;
-      const walkableAreaPercent = (walkableArea / totalArea * 100).toFixed(2);
+      const walkableAreaInSelectedUnit = convertArea(walkableArea, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
+      const areaPerPedestrianInSelectedUnit = convertArea(areaPerPedestrian, areaUnits.SQUARE_METERS, context.metadata.areaUnit);
+
+      const walkableAreaPercent = walkableArea / totalArea * 100;
       const pcc = walkableArea / areaPerPedestrian * rotationFactor;
       let rcc = pcc;
       for(const {value} of correctiveFactors) {
@@ -464,19 +471,23 @@ module.exports = function (context) {
       const ecc = managementCapacity * rcc;
 
       let csv =
-`area (meters),${totalArea}
-walkable area (meters),${walkableArea}
-walkable area (%),${walkableAreaPercent}
-area per pedestrian (sq. meters),${areaPerPedestrian}
-rotation factor,${rotationFactor}
-pcc,${pcc}\n`;
+`name,value,unit
+removed private building areas,${flattenBuildings},
+classify roads as walkable,${walkableRoads},
+classify grass as unwalkable,${unwalkableGrass},
+total area,${totalAreaInSelectedUnit.toFixed(2)},${unitName}
+walkable area,${walkableAreaInSelectedUnit.toFixed(2)},${unitName}
+walkable area,${walkableAreaPercent.toFixed(2)},%
+area per pedestrian,${areaPerPedestrianInSelectedUnit},${unitName}
+rotation factor,${rotationFactor},
+pcc,${Math.round(pcc)},\n`;
       for(const {value, name} of correctiveFactors) {
-        csv += `${name},${value}\n`;
+        csv += `${name},${value},\n`;
       }
       csv +=
-`rcc,${rcc}
-management capacity,${managementCapacity}
-ecc,${ecc}\n`;
+`rcc,${Math.round(rcc)},
+management capacity,${managementCapacity},
+ecc,${Math.round(ecc)},\n`;
 
       const blob = new Blob([csv], { type: 'text/csv' });
       const link = document.createElement('a');
