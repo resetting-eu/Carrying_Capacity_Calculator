@@ -1,0 +1,6 @@
+const turf = require('@turf/turf');
+
+module.exports = {
+    calculateCarryingCapacity
+};
+

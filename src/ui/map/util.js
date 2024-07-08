@@ -498,12 +498,12 @@ function bindPopup(e, context, writable) {
     '</form>';
 
   const popupOffsets = {
-    top: [0, 10],
-    'top-left': [0, 10],
-    'top-right': [0, 10],
-    bottom: [0, -40],
-    'bottom-left': [0, -40],
-    'bottom-right': [0, -40],
+    top: [0, -200],
+    'top-left': [0, -200],
+    'top-right': [0, -200],
+    bottom: [0, -200],
+    'bottom-left': [0, 200],
+    'bottom-right': [0, 200],
     left: [25, -20],
     right: [-25, -20]
   };
@@ -511,10 +511,11 @@ function bindPopup(e, context, writable) {
   new mapboxgl.Popup({
     closeButton: false,
     maxWidth: '251px',
-    offset: popupOffsets,
+    offset: - (document.documentElement.clientHeight / 3),
+    anchor: "top",
     className: 'geojsonio-feature'
   })
-    .setLngLat(e.lngLat)
+    .setLngLat(context.map.getCenter())
     .setHTML(content)
     .on('open', (e) => {
       // bind popup event listeners

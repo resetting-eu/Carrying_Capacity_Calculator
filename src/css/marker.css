@@ -173,11 +173,13 @@ i.delete-invert:hover {
 
 .geojsonio-feature {
   z-index: 100;
+  max-height: 50% !important;
 }
 
 .geojsonio-feature .mapboxgl-popup-content {
   float: left;
   padding: 0 !important;
+  max-height: 50% !important;
 }
 
 .geojsonio-feature .leaflet-popup-tip-container {
