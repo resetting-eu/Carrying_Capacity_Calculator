@@ -9,7 +9,7 @@
   border-bottom: var(--border-default);
 
   /* Equal to 6 rows */
-  max-height: 189px;
+  max-height: 50vh;
 }
 
 .marker-info {

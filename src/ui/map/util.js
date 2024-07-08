@@ -459,7 +459,7 @@ function bindPopup(e, context, writable) {
   const tabs =
     '<div class="pad1 tabs-ui clearfix col12">' +
     '<div class="tab col12">' +
-    '<input class="hide" type="radio" id="properties" name="tab-group" checked="true">' +
+    '<input class="hide" type="radio" id="properties" name="tab-group">' +
     '<label class="keyline-top keyline-right tab-toggle pad0 pin-bottomleft z10 center col6" for="properties">Properties</label>' +
     '<div class="space-bottom1 col12 content">' +
     '<table class="space-bottom0 marker-properties">' +
@@ -474,7 +474,7 @@ function bindPopup(e, context, writable) {
     '</div>' +
     '</div>' +
     '<div class="space-bottom2 tab col12">' +
-    '<input class="hide" type="radio" id="info" name="tab-group">' +
+    '<input class="hide" type="radio" id="info" name="tab-group" checked="true">' +
     '<label class="keyline-top tab-toggle pad0 pin-bottomright z10 center col6" for="info">Info</label>' +
     '<div class="space-bottom1 col12 content">' +
     '<div class="marker-info">' +
