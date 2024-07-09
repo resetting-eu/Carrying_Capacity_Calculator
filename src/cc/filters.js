@@ -11,6 +11,7 @@ function filterFeatures(features, bounds){
         grass: [],
         bridges: [],
         barriers:[],
+        boundaries:[],
     };
 
     for (let feature of features) {
@@ -36,6 +37,8 @@ function filterFeatures(features, bounds){
             filteredFeatures.grass.push(feature);
         else if(isBarrier(feature))
             filteredFeatures.barriers.push(feature);
+        else if(isBoundary(feature))
+            filteredFeatures.boundaries.push(feature);
 
     }
 
@@ -120,6 +123,10 @@ function isRestrictedArea(feature){
 function isBarrier(feature){
     return feature.properties.barrier &&
     feature.properties.barrier != "kerb";
+}
+
+function isBoundary(feature){
+    return feature.properties.boundary == "administrative";
 }
 
 function isAboveGround(feature){
