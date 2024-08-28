@@ -459,7 +459,7 @@ function bindPopup(e, context, writable) {
   const tabs =
     '<div class="pad1 tabs-ui clearfix col12">' +
     '<div class="tab col12">' +
-    '<input class="hide" type="radio" id="properties" name="tab-group" checked="true">' +
+    '<input class="hide" type="radio" id="properties" name="tab-group">' +
     '<label class="keyline-top keyline-right tab-toggle pad0 pin-bottomleft z10 center col6" for="properties">Properties</label>' +
     '<div class="space-bottom1 col12 content">' +
     '<table class="space-bottom0 marker-properties">' +
@@ -474,7 +474,7 @@ function bindPopup(e, context, writable) {
     '</div>' +
     '</div>' +
     '<div class="space-bottom2 tab col12">' +
-    '<input class="hide" type="radio" id="info" name="tab-group">' +
+    '<input class="hide" type="radio" id="info" name="tab-group" checked="true">' +
     '<label class="keyline-top tab-toggle pad0 pin-bottomright z10 center col6" for="info">Info</label>' +
     '<div class="space-bottom1 col12 content">' +
     '<div class="marker-info">' +
@@ -498,12 +498,12 @@ function bindPopup(e, context, writable) {
     '</form>';
 
   const popupOffsets = {
-    top: [0, 10],
-    'top-left': [0, 10],
-    'top-right': [0, 10],
-    bottom: [0, -40],
-    'bottom-left': [0, -40],
-    'bottom-right': [0, -40],
+    top: [0, -200],
+    'top-left': [0, -200],
+    'top-right': [0, -200],
+    bottom: [0, -200],
+    'bottom-left': [0, 200],
+    'bottom-right': [0, 200],
     left: [25, -20],
     right: [-25, -20]
   };
@@ -511,10 +511,11 @@ function bindPopup(e, context, writable) {
   new mapboxgl.Popup({
     closeButton: false,
     maxWidth: '251px',
-    offset: popupOffsets,
+    offset: - (document.documentElement.clientHeight / 3),
+    anchor: "top",
     className: 'geojsonio-feature'
   })
-    .setLngLat(e.lngLat)
+    .setLngLat(context.map.getCenter())
     .setHTML(content)
     .on('open', (e) => {
       // bind popup event listeners

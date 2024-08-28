@@ -2,3 +2,4 @@
 .DS_Store
 /dist
 /backend/__pycache__
+/cc.js
