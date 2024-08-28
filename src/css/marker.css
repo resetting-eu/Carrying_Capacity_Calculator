@@ -1,0 +1,259 @@
+.marker-properties,
+.metadata,
+.metadata-grid {
+  border-collapse: collapse;
+  font-size: 11px;
+  width: 100%;
+  overflow: auto;
+  --border-default: 1px solid #ccc;
+  border-bottom: var(--border-default);
+
+  /* Equal to 6 rows */
+  max-height: 50vh;
+}
+
+.marker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.metadata-grid > div {
+  border-left: var(--border-default);
+  border-top: var(--border-default);
+  padding: 5px 10px;
+  align-content: center;
+}
+
+.metadata-grid > div.merge {
+  grid-row: span 2;
+}
+
+.metadata-grid > div.right {
+  border-left: 0;
+  border-right: var(--border-default);
+}
+
+.metadata-grid > div.row-with-gap {
+  margin-bottom: 10px;
+  border-bottom: var(--border-default);
+}
+
+.metadata-grid > div.input {
+  --border-input: 1px dotted #4396e2;
+  border-left: var(--border-input);
+  border-top: var(--border-input);
+}
+
+.metadata-grid > div.input.row-with-gap {
+  margin-bottom: 5px;
+  border-bottom: var(--border-input);
+}
+
+.metadata-grid > div.input.right {
+  border-left: 0;
+  border-right: var(--border-input);
+}
+
+.metadata-grid input {
+  border: var(--border-default);
+  max-width: 5em;
+  height: 2.25em;
+}
+
+.corrective-factor {
+  display: flex;
+  gap: 0.5em;
+  align-items: flex-start;
+}
+
+.corrective-factor textarea {
+  max-width: 8em;
+}
+
+.metadata-grid > div.input.last-row {
+  border-bottom: var(--border-input);
+}
+
+.corrective-factor i {
+  align-self: center;
+  cursor: pointer;
+}
+
+.corrective-factor .cf-align-right {
+  margin-left: auto;
+}
+
+i.delete-invert {
+  color: #b81b1b;
+}
+
+i.delete-invert:hover {
+  color: #e25353;
+}
+
+.metadata-grid > div.add-corrective-factor {
+  border: 0;
+  grid-column: span 2;
+}
+
+.area-unit {
+  margin-left: 0.3em;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.area-unit > select {
+	padding: 5px;
+	border-radius: 3px;
+}
+
+.calculate-carrying-capacity-button {
+  align-self: center;
+}
+
+.tooltip-label {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.tooltip {
+  background-color: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: none;
+  z-index: 110;
+  max-inline-size: 25em;
+}
+
+.tooltip[data-show] {
+  display: block;
+}
+
+.marker-properties {
+  display: block;
+}
+
+.metadata {
+  display: table;
+}
+
+.marker-properties th {
+  width: 33.3333%;
+  min-width: 100px;
+  white-space: nowrap;
+  border: 1px solid #ccc;
+}
+
+.marker-properties td {
+  width: 60%;
+}
+
+.marker-properties.display td,
+.marker-properties.display th {
+  padding: 5px 10px;
+}
+
+.marker-properties tr:last-child td,
+.marker-properties tr:last-child th {
+  border-bottom: none;
+}
+
+.marker-properties tr:nth-child(even) th,
+.marker-properties tr:nth-child(even) td {
+  background-color: #f7f7f7;
+}
+
+.geojsonio-feature {
+  z-index: 100;
+  max-height: 50% !important;
+}
+
+.geojsonio-feature .mapboxgl-popup-content {
+  float: left;
+  padding: 0 !important;
+  max-height: 50% !important;
+}
+
+.geojsonio-feature .leaflet-popup-tip-container {
+  float: left;
+  margin-left: 50%;
+  right: 10px;
+}
+
+datalist {
+  overflow: auto;
+  height: 150px;
+}
+
+.download {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Tabs
+------------------------------------------------------- */
+.tabs-ui {
+  position: relative;
+  width: 250px;
+}
+
+.tabs-ui > * {
+  box-sizing: border-box;
+}
+
+.tab .tab-toggle {
+  background: #eee;
+  cursor: pointer;
+}
+
+.tab .tab-toggle:hover {
+  background: #f7f7f7;
+}
+
+.tab .hide {
+  display: none;
+}
+
+.tab .content {
+  display: none;
+  background: white;
+  overflow: auto;
+}
+
+.tab [type='radio']:checked ~ label {
+  background: white;
+  border-top-width: 0;
+  z-index: 2;
+}
+
+.tab [type='radio']:checked ~ label ~ .content {
+  z-index: 1;
+  display: block;
+}
+
+.add-row-button,
+.add-simplestyle-properties-button,
+.add-carrying-capacity-input-button,
+.add-corrective-factor {
+  color: #2980b9;
+}
+
+.add-row-button:hover,
+.add-simplestyle-properties-button:hover,
+.add-carrying-capacity-input-button:hover,
+.add-corrective-factor:hover {
+  cursor: pointer;
+  color: #199cf4;
+}
+
+.foo {
+  background: 'green';
+}
