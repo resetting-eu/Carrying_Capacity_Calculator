@@ -59,12 +59,12 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     smallMonuments = processSmallMonuments(smallMonuments);
     barriers = processBarriers(barriers);
 
-    console.log("Monuments:");
+    /*console.log("Monuments:");
     console.log(smallMonuments);
     console.log("Urban furniture:");
     console.log(benches);
     console.log("Grass:");
-    console.log(waterBodies);
+    console.log(waterBodies);*/
 
     let waterWithBridges = [];
 

@@ -41,6 +41,7 @@ module.exports = function (context) {
 
     sel.select('#download-geojson').on('click', downloadGeoJSON);
     sel.select('#download-csv').on('click', downloadCSV);
+    sel.select('#upload-geometries').on('click', uploadData);
 
     const data = context.data.get('map');
     const feature = data.features[id];
@@ -104,6 +105,7 @@ module.exports = function (context) {
 
         console.log(options);
 
+    
         run(navigator.hardwareConcurrency * 2, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
           context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters, options};
@@ -436,6 +438,30 @@ module.exports = function (context) {
         const computedKey = computeStorageKey(id_hash, MANAGEMENT_CAPACITY_STORAGE_KEY);
         context.storage.set(computedKey, managementCapacity);
       });
+    }
+
+    function uploadData(){
+      const fileInput = document.getElementById('upload-geometries-input');
+      
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        console.log(context)
+
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          context.storage.set("custom_features", JSON.parse(e.target.result));
+          console.log('File content:', e.target.result);
+        };
+
+        reader.onerror = function(e) {
+          console.error('Error reading file:', e);
+        };
+
+        reader.readAsText(file); // You can use readAsArrayBuffer or readAsDataURL if needed
+      });
+      fileInput.click()
     }
 
     function downloadGeoJSON() {

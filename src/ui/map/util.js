@@ -383,14 +383,15 @@ function bindPopup(e, context, writable) {
       info += '<div> <input type="checkbox" id="buildings" name="buildings" /> <label for="buildings">Remove private building areas</label></div>'
       info += '<div> <input type="checkbox" id="roads" name="roads" /> <label for="roads">Classify roads as walkable</label></div>'
       info += '<div> <input type="checkbox" id="grass" name="grass" /> <label for="grass">Classify grass as unwalkable</label></div>'
+      info += '<div class="center " style="margin:10px"><button type="button" id="upload-geometries" class="minor">Upload custom data</button><div class="center ">'
+      info += '<input id="upload-geometries-input" type="file" accept=".json,.geojson" style="display:none"/>'
       info += '</div>'
 
-      info += '<button type="button" class="major calculate-carrying-capacity-button';
+      info += '<button type="button" style="margin:10px" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)
         info += ' hide';
       info += '">Calculate carrying capacity</button>';
 
-      
       info += '<div id="calculating-' + id + '" class="center';
       if(walkable_meters !== "calculating")
         info += ' hide';
