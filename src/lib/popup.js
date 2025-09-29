@@ -70,8 +70,8 @@ module.exports = function (context) {
       const feature_bbox = bbox(feature);
       const bbox_ordered = [feature_bbox[1], feature_bbox[0], feature_bbox[3], feature_bbox[2]];
       const bbox_str = bbox_ordered.join(",");
-      const query_old = `[out:json];(nwr(${bbox_str}););(._;>;);out;`;
-      const query = `[out:json];(nwr[boundary!~"timezone"][!route](${bbox_str}););(._;>;);out;`;
+      const query_old = `[out:json][timeout:90];(nwr(${bbox_str}););(._;>;);out;`;
+      const query = `[out:json][timeout:90];nwr[!boundary][!route](${bbox_str});(._;>;);out;`;
       const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
 
       fetch(overpassEndpoint, {
@@ -88,6 +88,7 @@ module.exports = function (context) {
         return response.json();
       })
       .then(j => {
+
         const osm_geojson = osmtogeojson(j);
         console.log(osm_geojson);
 
@@ -105,8 +106,14 @@ module.exports = function (context) {
 
         console.log(options);
 
+        let customGeometries = context.storage.get("custom_features");
+        console.log("Custom features: " + customGeometries);
+
+        // Limit worker numbers to avoid excessive memory overhead
+        let nCores = navigator.hardwareConcurrency;
+        let num_workers = (nCores * 2 <= 10) ? nCores * 2 : nCores;
     
-        run(navigator.hardwareConcurrency * 2, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
+        run(nCores, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
           context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters, options};
           
