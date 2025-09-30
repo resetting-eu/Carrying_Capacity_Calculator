@@ -125,7 +125,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
 }
 
 function walkableAreaWithSubAreas(features, bounds, options, workerID){
-    let subAreas = divideArea(bounds, 8, horizontal=false);
+    let subAreas = divideArea(bounds, 10, horizontal=false);
     let subAreaFeatures = [];
     let totalPolygons = 0;
 
@@ -145,7 +145,6 @@ function walkableAreaWithSubAreas(features, bounds, options, workerID){
     for(let i = 0; i < subAreas.length; i++){
         unwalkablePolygons.push(walkableArea(subAreaFeatures[i], subAreas[i], options, workerID, null, progress));
     }
-    console.log(unwalkablePolygons);
     return unionArray(unwalkablePolygons);
 }
 

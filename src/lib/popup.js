@@ -71,7 +71,7 @@ module.exports = function (context) {
       const bbox_ordered = [feature_bbox[1], feature_bbox[0], feature_bbox[3], feature_bbox[2]];
       const bbox_str = bbox_ordered.join(",");
       const query_old = `[out:json][timeout:90];(nwr(${bbox_str}););(._;>;);out;`;
-      const query = `[out:json][timeout:90];nwr[!boundary][!route](${bbox_str});(._;>;);out;`;
+      const query = `[out:json][timeout:90];nwr[!route](${bbox_str});(._;>;);out;`;
       const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
 
       fetch(overpassEndpoint, {
@@ -83,6 +83,7 @@ module.exports = function (context) {
       })
       .then(response => {
         if (!response.ok) {
+          alert(`Error on calling Overpass API: ${response.status}`);
           throw new Error(`HTTP error on overpass call! Status: ${response.status}`);
         }
         return response.json();
@@ -106,12 +107,11 @@ module.exports = function (context) {
 
         console.log(options);
 
-        let customGeometries = context.storage.get("custom_features");
-        console.log("Custom features: " + customGeometries);
+        let customGeometries = context.storage.get("custom_features_" + id_hash);
 
         // Limit worker numbers to avoid excessive memory overhead
         let nCores = navigator.hardwareConcurrency;
-        let num_workers = (nCores * 2 <= 10) ? nCores * 2 : nCores;
+        let num_workers = (nCores * 2 < 10) ? nCores * 2 : Math.max(nCores, 10);
     
         run(nCores, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
@@ -458,7 +458,7 @@ module.exports = function (context) {
         const reader = new FileReader();
         
         reader.onload = function(e) {
-          context.storage.set("custom_features", JSON.parse(e.target.result));
+          context.storage.set("custom_features_" + id_hash, JSON.parse(e.target.result));
           console.log('File content:', e.target.result);
         };
 
