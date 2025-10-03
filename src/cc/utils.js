@@ -1,6 +1,11 @@
 // Buffer functions
 function addBuffer(feature, value){
-    return turf.buffer(feature, value, {units: 'meters'});
+    try{
+        return turf.buffer(feature, value, {units: 'meters'});
+    }catch(error){
+        console.log(feature)
+        console.log(error)
+    }
 }
 
 function addBufferMany(features, value){

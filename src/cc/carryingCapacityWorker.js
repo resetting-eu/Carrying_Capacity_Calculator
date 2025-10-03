@@ -1,7 +1,7 @@
 
 function walkableArea(features, bounds, options={}, workerId, progressCallback, 
     progress={processedPolygons:0, totalPolygons:0}){
-	try{
+	//try{
 	
     let LANE_WIDTH = 3;
     let RAIL_WIDTH = 3;
@@ -125,9 +125,9 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     }
 
     return walkableAreaPolygon;
-	}catch(error){
-		console.log(error);
-	}
+	//}catch(error){
+	//	console.log(error);
+	//}
 }
 
 function walkableAreaWithSubAreas(features, bounds, options, workerID){

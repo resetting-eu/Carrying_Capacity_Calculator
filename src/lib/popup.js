@@ -91,7 +91,7 @@ module.exports = function (context) {
       .then(j => {
 
         const osm_geojson = osmtogeojson(j);
-        console.log(osm_geojson);
+        console.log("OSM data downloaded");
 
         const grass = sel.select(".calculate-carrying-capacity-button");
 
@@ -111,7 +111,7 @@ module.exports = function (context) {
         console.log(options);
 
         // Limit worker numbers to avoid excessive memory overhead
-        let nCores = navigator.hardwareConcurrency;
+        let nCores = Math.min(navigator.hardwareConcurrency, 10);
         //let num_workers = (nCores * 2 < 10) ? nCores * 2 : Math.max(nCores, 10);
     
         run(nCores, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
