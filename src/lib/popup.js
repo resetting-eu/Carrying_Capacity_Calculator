@@ -95,6 +95,8 @@ module.exports = function (context) {
 
         const grass = sel.select(".calculate-carrying-capacity-button");
 
+        let custom_features = context.storage.get("custom_features_" + id_hash);
+
         const options = {
           railWidth: 3,
           laneWidth: 3,
@@ -102,16 +104,15 @@ module.exports = function (context) {
           parallelWidth: 5,
           flattenBuildings: sel.select("#buildings").node().checked,
           walkableRoads: sel.select("#roads").node().checked,
-          unwalkableGrass: sel.select("#grass").node().checked
+          unwalkableGrass: sel.select("#grass").node().checked,
+          customFeatures: custom_features
         };
 
         console.log(options);
 
-        let customGeometries = context.storage.get("custom_features_" + id_hash);
-
         // Limit worker numbers to avoid excessive memory overhead
         let nCores = navigator.hardwareConcurrency;
-        let num_workers = (nCores * 2 < 10) ? nCores * 2 : Math.max(nCores, 10);
+        //let num_workers = (nCores * 2 < 10) ? nCores * 2 : Math.max(nCores, 10);
     
         run(nCores, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);

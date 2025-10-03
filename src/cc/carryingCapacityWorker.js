@@ -88,6 +88,12 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
         unwalkablePolygons = unwalkablePolygons.concat(grass);
     }
 
+    if(options.customFeatures){
+        console.log("Custom geometries:");
+        console.log(options.customFeatures.features);
+        unwalkablePolygons = unwalkablePolygons.concat(options.customFeatures.features)
+    }
+
     if(progress.totalPolygons == 0){
         progress.totalPolygons = unwalkablePolygons.length;
     }
