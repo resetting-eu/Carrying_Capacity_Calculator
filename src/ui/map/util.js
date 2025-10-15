@@ -389,7 +389,7 @@ function bindPopup(e, context, writable) {
 
       customFeatures = context.storage.get("custom_features_" + id);
       if(customFeatures){
-        info += '<div> Custom features exist</div>'
+        info += '<div> Custom features uploaded</div>'
       }
 
       info += '<button type="button" style="margin:10px" class="major calculate-carrying-capacity-button';
@@ -413,10 +413,10 @@ function bindPopup(e, context, writable) {
       
         info += '<div class="download';
         if(walkable_meters === undefined || walkable_meters === "calculating")
-          info += ' hide';
+          info += '';
         info += '">' +
-          '<button type="button" id="download-geojson" class="minor">Download GeoJSON</button>' +
-          '<button type="button" id="download-csv" class="minor">Download CSV</button>' +
+          '<button type="button" id="download-geojson" class="minor">Save GeoJSON</button>' +
+          '<button type="button" id="download-csv" class="minor">Save CSV</button>' +
           '</div>'
     }
   }

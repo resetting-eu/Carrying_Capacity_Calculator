@@ -100,6 +100,9 @@ function showProgress(progress, progressElementID){
     if(progressElement !== null) {
         progressElement.innerHTML = Math.floor(progress) + "%";
     }
+    if(progress === 100){
+        progressElement.innerHTML = "100% (Joining results...)";
+    }
 }
 
 module.exports = run;

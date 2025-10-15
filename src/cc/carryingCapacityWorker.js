@@ -115,13 +115,14 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
         progress.processedPolygons ++;
         let processedPolygons = progress.processedPolygons;
         let totalPolygons = progress.totalPolygons;
-        if(processedPolygons % 10 == 0) {
+
+        /*if(processedPolygons % 10 == 0) {
             if(workerId !== undefined && workerId !== null) {
                 postMessage({progress: true, processedPolygons, totalPolygons, workerId});
             } else {
                 progressCallback(processedPolygons / totalPolygons * 100);
             }
-        }
+        }*/
     }
 
     return walkableAreaPolygon;
@@ -130,7 +131,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
 	//}
 }
 
-function walkableAreaWithSubAreas(features, bounds, options, workerID){
+function walkableAreaWithSubAreas(features, bounds, options, workerId){
     let subAreas = divideArea(bounds, 10, horizontal=false);
     let subAreaFeatures = [];
     let totalPolygons = 0;
@@ -149,9 +150,25 @@ function walkableAreaWithSubAreas(features, bounds, options, workerID){
     }
     progress = {"totalPolygons":totalPolygons,"processedPolygons": 0};
     for(let i = 0; i < subAreas.length; i++){
-        unwalkablePolygons.push(walkableArea(subAreaFeatures[i], subAreas[i], options, workerID, null, progress));
+        unwalkablePolygons.push(walkableArea(subAreaFeatures[i], subAreas[i], options, workerId, null, progress));
+        if(workerId !== undefined && workerId !== null) {
+            postMessage({progress: true, processedPolygons:i+1, totalPolygons:subAreas.length, workerId});
+        } 
     }
-    return unionArray(unwalkablePolygons);
+
+    results = [];
+    try{
+        results = unionArray(unwalkablePolygons);
+    }catch(e){
+        unwalkablePolygons = addBufferMany(unwalkablePolygons, 0.01);
+        try{
+            results = unionArray(unwalkablePolygons);
+        }catch(e1){
+            alert("There are geometry issues with the unions involved in this . Try another time");
+            console.log(e);
+        }
+    }
+    return results;
 }
 
 

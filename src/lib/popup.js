@@ -92,6 +92,7 @@ module.exports = function (context) {
 
         const osm_geojson = osmtogeojson(j);
         console.log("OSM data downloaded");
+        sel.select("#calculating-" + id_hash).text("Starting calculations...");
 
         const grass = sel.select(".calculate-carrying-capacity-button");
 
@@ -109,24 +110,26 @@ module.exports = function (context) {
         };
 
         console.log(options);
-
         // Limit worker numbers to avoid excessive memory overhead
         let nCores = Math.min(navigator.hardwareConcurrency, 10);
         //let num_workers = (nCores * 2 < 10) ? nCores * 2 : Math.max(nCores, 10);
-    
-        run(nCores, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
+        setTimeout(() => {
+          run(nCores, "calculating-" + id_hash, osm_geojson.features, feature, options, feature_walkable => {
           const walkable_meters = area(feature_walkable);
           context.metadata.areas[id_hash] = {feature: feature_walkable, meters: walkable_meters, options};
           
           calculating.classed("hide", true);
           sel.select("#ccc-options").classed("hide", true);
+          sel.select(".download").classed("hide", false);
 
           expandMetadataWithCarryingCapacity(feature, walkable_meters);
 
           context.map.overlay.addFeature(context, id_hash);
           sel.select("#ccc-options").classed("hide", true);
           sel.select(".download").classed("hide", false);
-        });
+          });
+        }, 0);
+        
       })
       .catch(e => {
         console.error(e);
