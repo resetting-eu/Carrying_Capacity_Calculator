@@ -92,6 +92,8 @@ module.exports = function (context) {
 
         const osm_geojson = osmtogeojson(j);
         console.log("OSM data downloaded");
+        console.log("Number of features: " + osm_geojson.features.length);
+        console.log(osm_geojson.features);
         sel.select("#calculating-" + id_hash).text("Starting calculations...");
 
         const grass = sel.select(".calculate-carrying-capacity-button");

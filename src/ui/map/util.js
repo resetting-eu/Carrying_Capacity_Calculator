@@ -383,7 +383,7 @@ function bindPopup(e, context, writable) {
       info += '<div> <input type="checkbox" id="buildings" name="buildings" /> <label for="buildings">Remove private building areas</label></div>'
       info += '<div> <input type="checkbox" id="roads" name="roads" /> <label for="roads">Classify roads as walkable</label></div>'
       info += '<div> <input type="checkbox" id="grass" name="grass" /> <label for="grass">Classify grass as unwalkable</label></div>'
-      info += '<div class="center " style="margin:10px"><button type="button" id="upload-geometries" class="minor">Upload custom data</button><div class="center ">'
+      info += '<div class="center "><button type="button" id="upload-geometries" class="minor">Upload custom data</button></div>'
       info += '<input id="upload-geometries-input" type="file" accept=".json,.geojson" style="display:none"/>'
       info += '</div>'
 
@@ -415,8 +415,8 @@ function bindPopup(e, context, writable) {
         if(walkable_meters === undefined || walkable_meters === "calculating")
           info += '';
         info += '">' +
-          '<button type="button" id="download-geojson" class="minor">Save GeoJSON</button>' +
-          '<button type="button" id="download-csv" class="minor">Save CSV</button>' +
+          '<button type="button" id="download-geojson" class="minor">Download GeoJSON</button>' +
+          '<button type="button" id="download-csv" class="minor">Download CSV</button>' +
           '</div>'
     }
   }
