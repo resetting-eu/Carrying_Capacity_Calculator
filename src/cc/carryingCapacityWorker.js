@@ -39,6 +39,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     let trees = filteredFeatures.trees;
     let smallMonuments = filteredFeatures.smallMonuments;
     let barriers = filteredFeatures.barriers;
+    let land = filteredFeatures.land;
     
     let bridges = filteredFeatures.bridges;
     let boundaries = filteredFeatures.boundaries;
@@ -67,15 +68,28 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     console.log(waterBodies);*/
 
     let waterWithBridges = [];
+    console.log("Boundaries:");
+    console.log(boundaries);
 
-    if(boundaries.length != 0){
+    if(boundaries.length == 0){
+        if(land.length == 0){
+            return addBuffer(turf.centroid(bounds), 0.01);
+        }
+    }else{
+        if(!turf.booleanWithin(bounds, boundaries[0])){
+            let unmappedWater = turf.difference(bounds, boundaries[0]);
+            waterWithBridges.push(unmappedWater);
+        }
+    }
+
+    /*if(boundaries.length != 0){
         if(!turf.booleanWithin(bounds, boundaries[0])){
             let unmappedWater = turf.difference(bounds, boundaries[0]);
             waterWithBridges.push(unmappedWater);
         }
     }else{
         return addBuffer(turf.centroid(bounds), 0.01);
-    }
+    }*/
 
     for (let water of waterBodies){
         waterWithBridges.push(differenceMany(water, bridges));
@@ -94,11 +108,12 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
         unwalkablePolygons = unwalkablePolygons.concat(options.customFeatures.features)
     }
 
-    if(progress.totalPolygons == 0){
+    /*if(progress.totalPolygons == 0){
         progress.totalPolygons = unwalkablePolygons.length;
-    }
+    }*/
         
     let walkableAreaPolygon = bounds;
+    console.log("Unwalkable features: "+unwalkablePolygons.length);
 
     for(let f of unwalkablePolygons){
         try{
@@ -132,7 +147,11 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
 }
 
 function walkableAreaWithSubAreas(features, bounds, options, workerId){
-    let subAreas = divideArea(bounds, 10, horizontal=false);
+    bounds_area = turf.area(bounds);
+    numDivisions = Math.ceil(bounds_area/100000);
+    numDivisions = numDivisions >= 1 ? numDivisions : 1 
+    //console.log("Num divisions: " + numDivisions);
+    let subAreas = divideArea(bounds, numDivisions, horizontal=false);
     let subAreaFeatures = [];
     let totalPolygons = 0;
 
@@ -146,9 +165,10 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
             }
         }
         subAreaFeatures.push(subFeatures);
-        totalPolygons += subFeatures.length;
+        //totalPolygons += subFeatures.length;
     }
     progress = {"totalPolygons":totalPolygons,"processedPolygons": 0};
+    console.log(subAreaFeatures);
     for(let i = 0; i < subAreas.length; i++){
         unwalkablePolygons.push(walkableArea(subAreaFeatures[i], subAreas[i], options, workerId, null, progress));
         if(workerId !== undefined && workerId !== null) {

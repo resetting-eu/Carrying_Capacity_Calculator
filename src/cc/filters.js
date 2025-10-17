@@ -12,6 +12,7 @@ function filterFeatures(features, bounds){
         bridges: [],
         barriers:[],
         boundaries:[],
+        land:[],
     };
 
     for (let feature of features) {
@@ -39,6 +40,9 @@ function filterFeatures(features, bounds){
             filteredFeatures.barriers.push(feature);
         else if(isBoundary(feature))
             filteredFeatures.boundaries.push(feature);
+        else if(isLand(feature))
+            filteredFeatures.land.push(feature);
+
 
     }
 
@@ -135,6 +139,12 @@ function isAboveGround(feature){
     return true;
 }
 
+function isLand(feature){
+    return feature.properties.place ||
+    feature.properties.landuse ||
+    (feature.properties.natural && !isWater(feature));
+}
+
 // Geometry type filters
 function isLine(feature){
     return feature.geometry.type == "LineString";
@@ -147,3 +157,8 @@ function isPolygon(feature){
 function isPoint(feature){
     return feature.geometry.type == "Point";
 }
+
+function isPoint(feature){
+    return feature.geometry.type == "Point";
+}
+
