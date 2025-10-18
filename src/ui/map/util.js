@@ -392,7 +392,7 @@ function bindPopup(e, context, writable) {
         info += '<div> Custom features uploaded</div>'
       }
 
-      info += '<button type="button" style="margin:10px" class="major calculate-carrying-capacity-button';
+      info += '<button type="button" style="margin:5px" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)
         info += ' hide';
       info += '">Calculate carrying capacity</button>';

@@ -175,7 +175,15 @@ module.exports = function (context) {
         (walkable_meters / area(feature.geometry) * 100).toFixed(2) +
         '%</div>' +
         '<div class="input"><span class="tooltip-label" tooltip="area-per-pedestrian">Area per Pedestrian</span></div>' +
-        '<div class="right input"><input value="' + areaPerPedestrianInSelectedUnit + '" id="info-area-per-pedestrian"></input> <span class="info-area-unit">' + unitHTML + '</span></div>' +
+        '<div class="right input"><input list="los" value="' + areaPerPedestrianInSelectedUnit + '" id="info-area-per-pedestrian">'+
+        `<datalist id="los">
+            <option value="5.6" label="LOS A (m2/ped)">
+            <option value="3.7" label="LOS B (m2/ped)">
+            <option value="2.2" label="LOS C (m2/ped)">
+            <option value="1.4" label="LOS D (m2/ped)">
+            <option value="0.75" label="LOS E (m2/ped)">
+        </datalist>`+
+        '</input> <span class="info-area-unit">' + unitHTML + '</span></div>'+ 
         '<div class="input row-with-gap">' +
         '<span class="tooltip-label" tooltip="rotation-factor">Rotation Factor</span></div>' +
         '<div class="right input row-with-gap"><input id="info-rotation-factor" value="' + rotationFactor + '"></input></div>' +
@@ -187,6 +195,17 @@ module.exports = function (context) {
         '<div><span class="tooltip-label" tooltip="effective-carrying-capacity">ECC</span></div>' +
         '<div class="right"><span id="info-effective-carrying-capacity">' + Math.round(correctiveFactorsResponse.rcc * managementCapacity) + '</span> visitors</div>'
       );
+
+      // Fixing LOS suggestion functionality
+      /*
+      const input = document.getElementById('info-area-per-pedestrian');
+      // Trick: open dropdown with all options when focusing
+      input.addEventListener('click', () => {
+        const oldValue = input.value;
+        input.value = '';             // insert space to trigger dropdown
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+        input.value = oldValue;
+      });*/
       
       addCalculatorEvents();
 

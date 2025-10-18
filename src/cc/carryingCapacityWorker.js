@@ -68,8 +68,6 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     console.log(waterBodies);*/
 
     let waterWithBridges = [];
-    console.log("Boundaries:");
-    console.log(boundaries);
 
     if(boundaries.length == 0){
         if(land.length == 0){
@@ -113,7 +111,6 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     }*/
         
     let walkableAreaPolygon = bounds;
-    console.log("Unwalkable features: "+unwalkablePolygons.length);
 
     for(let f of unwalkablePolygons){
         try{
@@ -168,7 +165,6 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
         //totalPolygons += subFeatures.length;
     }
     progress = {"totalPolygons":totalPolygons,"processedPolygons": 0};
-    console.log(subAreaFeatures);
     for(let i = 0; i < subAreas.length; i++){
         unwalkablePolygons.push(walkableArea(subAreaFeatures[i], subAreas[i], options, workerId, null, progress));
         if(workerId !== undefined && workerId !== null) {

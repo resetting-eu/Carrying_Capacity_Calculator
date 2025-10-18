@@ -2,7 +2,7 @@ module.exports = {
   "walkable-area": "The area of the geometry that a pedestrian can walk on. "
     + "This area is drawn on the map and is shown in this table both in absolute terms "
     + "and as a percentage of the total area.",
-  "area-per-pedestrian": "Minimum area required for each pedestrian.",
+  "area-per-pedestrian": "Minimum area required for each pedestrian. The suggested values represent the lower levels of each Level of Service for walking pedestrians (from the Highway Capacity Manual)",
   "rotation-factor": "Number of visits within a time period (usually a day). "
     + "Set this to 1 to get instant PCC.",
   "physical-carrying-capacity": "Physical Carrying Capacity: "
