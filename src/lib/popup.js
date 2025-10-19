@@ -71,7 +71,7 @@ module.exports = function (context) {
       const bbox_ordered = [feature_bbox[1], feature_bbox[0], feature_bbox[3], feature_bbox[2]];
       const bbox_str = bbox_ordered.join(",");
       const query_old = `[out:json][timeout:90];(nwr(${bbox_str}););(._;>;);out;`;
-      const query = `[out:json][timeout:90];nwr[!route](${bbox_str});(._;>;);out;`;
+      const query = `[out:json][timeout:90];nwr[boundary!~"timezone"][!route](${bbox_str});(._;>;);out;`;
       const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
 
       fetch(overpassEndpoint, {

@@ -40,6 +40,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     let smallMonuments = filteredFeatures.smallMonuments;
     let barriers = filteredFeatures.barriers;
     let land = filteredFeatures.land;
+    let coastlines = filteredFeatures.coastlines;
     
     let bridges = filteredFeatures.bridges;
     let boundaries = filteredFeatures.boundaries;
@@ -70,10 +71,10 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     let waterWithBridges = [];
 
     if(boundaries.length == 0){
-        if(land.length == 0){
+        if(land.length == 0 && buildings.length==0 && roads.length==0){
             return addBuffer(turf.centroid(bounds), 0.01);
         }
-    }else{
+    }else if(coastlines.length!=0){
         if(!turf.booleanWithin(bounds, boundaries[0])){
             let unmappedWater = turf.difference(bounds, boundaries[0]);
             waterWithBridges.push(unmappedWater);
@@ -176,12 +177,13 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
     try{
         results = unionArray(unwalkablePolygons);
     }catch(e){
-        unwalkablePolygons = addBufferMany(unwalkablePolygons, 0.01);
+        console.log("Error on union... trying again");
+        console.log(e);
+        unwalkablePolygons = addBufferMany(unwalkablePolygons, 0.1);
         try{
             results = unionArray(unwalkablePolygons);
         }catch(e1){
-            alert("There are geometry issues with the unions involved in this . Try another time");
-            console.log(e);
+            console.log(e1);
         }
     }
     return results;

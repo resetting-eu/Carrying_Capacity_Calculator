@@ -13,6 +13,7 @@ function filterFeatures(features, bounds){
         barriers:[],
         boundaries:[],
         land:[],
+        coastlines:[],
     };
 
     for (let feature of features) {
@@ -42,6 +43,8 @@ function filterFeatures(features, bounds){
             filteredFeatures.boundaries.push(feature);
         else if(isLand(feature))
             filteredFeatures.land.push(feature);
+        else if(isCoastline(feature))
+            filteredFeatures.coastlines.push(feature);
 
 
     }
@@ -143,6 +146,10 @@ function isLand(feature){
     return feature.properties.place ||
     feature.properties.landuse ||
     (feature.properties.natural && !isWater(feature));
+}
+
+function isCoastline(feature){
+    return feature.properties.natural == "coastline"
 }
 
 // Geometry type filters

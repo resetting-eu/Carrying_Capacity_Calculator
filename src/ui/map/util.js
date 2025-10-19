@@ -415,8 +415,8 @@ function bindPopup(e, context, writable) {
         if(walkable_meters === undefined || walkable_meters === "calculating")
           info += ' hide';
         info += '">' +
-          '<button type="button" id="download-geojson" class="minor">Download GeoJSON</button>' +
-          '<button type="button" id="download-csv" class="minor">Download CSV</button>' +
+          '<button type="button" id="download-geojson" class="minor">Save as GeoJSON</button>' +
+          '<button type="button" id="download-csv" class="minor">Save as CSV</button>' +
           '</div>'
     }
   }
