@@ -54,8 +54,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     buildings = processBuildings(buildings, REMOVE_BUILDING_INNER_RINGS);
          
     railways = addBufferMany(railways, RAIL_WIDTH / 2);
-    bridges = addBufferMany(bridges, 0.01);
-    waterBodies = addBufferMany(waterBodies, 0.05);
+    waterBodies = processWater(filteredFeatures, bounds);
     benches = processBenches(benches);
     trees = processTrees(trees);
     smallMonuments = processSmallMonuments(smallMonuments);
@@ -66,18 +65,23 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     console.log("Urban furniture:");
     console.log(benches);
     console.log("Grass:");
-    console.log(waterBodies);*/
+    console.log(waterBodies);
+    console.log("Coastlines:");
+    console.log(coastlines);
+    console.log("Land:");
+    console.log(land);*/
 
-    let waterWithBridges = [];
+    const isNotLand = land.length == 0 && buildings.length==0 && roads.length==0;
 
     if(boundaries.length == 0){
-        if(land.length == 0 && buildings.length==0 && roads.length==0){
+        if(isNotLand){
             return addBuffer(turf.centroid(bounds), 0.01);
         }
-    }else if(coastlines.length!=0){
-        if(!turf.booleanWithin(bounds, boundaries[0])){
-            let unmappedWater = turf.difference(bounds, boundaries[0]);
-            waterWithBridges.push(unmappedWater);
+    }
+    else if(coastlines.length > 0 ){
+        if(!turf.booleanWithin(bounds, boundaries[boundaries.length-1])){
+            let unmappedWater = turf.difference(bounds, boundaries[boundaries.length-1]);
+            waterBodies.push(unmappedWater);
         }
     }
 
@@ -90,11 +94,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
         return addBuffer(turf.centroid(bounds), 0.01);
     }*/
 
-    for (let water of waterBodies){
-        waterWithBridges.push(differenceMany(water, bridges));
-    }
-
-    let unwalkablePolygons = buildings.concat(waterWithBridges, 
+    let unwalkablePolygons = buildings.concat(waterBodies, 
         roads, railways, restrictedAreas, benches, trees, smallMonuments, barriers);
     
     if(UNWALKABLE_GRASS){
@@ -125,11 +125,13 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
             console.log(f);
 			console.log(error);
         }
+        
+        /*
         progress.processedPolygons ++;
         let processedPolygons = progress.processedPolygons;
         let totalPolygons = progress.totalPolygons;
 
-        /*if(processedPolygons % 10 == 0) {
+        if(processedPolygons % 10 == 0) {
             if(workerId !== undefined && workerId !== null) {
                 postMessage({progress: true, processedPolygons, totalPolygons, workerId});
             } else {
@@ -148,7 +150,7 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
     bounds_area = turf.area(bounds);
     numDivisions = Math.ceil(bounds_area/100000);
     numDivisions = numDivisions >= 1 ? numDivisions : 1 
-    //console.log("Num divisions: " + numDivisions);
+    console.log("Number of area divisions: " + numDivisions);
     let subAreas = divideArea(bounds, numDivisions, horizontal=false);
     let subAreaFeatures = [];
     let totalPolygons = 0;

@@ -1,7 +1,10 @@
 function processSmallMonuments(features){
     let processed = [];
     for(f of features){
-        processed.push(addBuffer(f, 1));
+        if(isPolygon(f))
+            processed.push(addBuffer(f, 0.01));
+        else
+            processed.push(addBuffer(f, 1));
     }
     return processed;
 }
@@ -43,6 +46,19 @@ function processBarriers(features){
     return processed;
 }
 
+function processWater(filteredFeatures, bounds){
+    bridges = addBufferMany(filteredFeatures.bridges, 0.01);
+    waterBodies = addBufferMany(filteredFeatures.waterBodies, 0.05);
+    processed = [];
+    for (let water of waterBodies){
+        processed.push(differenceMany(water, bridges));
+    }
+
+    //unmappedWater = processUnmappeddWater(filteredFeatures, bounds);
+    //processed = processed.concat(unmappedWater);
+    return processed;
+}
+
 function processRoads(roads, laneWidth, diagonalWidth, parallelWidth){
     let processed = [];
     for(let road of roads){
@@ -75,3 +91,35 @@ function processRoads(roads, laneWidth, diagonalWidth, parallelWidth){
     }
     return processed;
 }
+
+
+/*function processUnrepresentedWater(filteredFeatures, bounds){
+    const land = filteredFeatures.land;
+    const buildings = filteredFeatures.buildings;
+    const roads = filteredFeatures.roads;
+    const boundaries = filteredFeatures.boundaries;
+
+    const isNotLand = land.length == 0 && buildings.length==0 && roads.length==0;
+
+    if(boundaries.length == 0){
+        if(isNotLand){
+            return addBuffer(turf.centroid(bounds), 0.01);
+        }
+    }else{
+        if(!turf.booleanWithin(bounds, boundaries[0])){
+            let unmappedWater = turf.difference(bounds, boundaries[0]);
+            let isWater = true;
+            for (let l of land){
+                if(turf.booleanIntersects(unmappedWater, l)){
+                    isWater = false;
+                    break;
+                }
+            }
+            if(isWater){
+                waterWithBridges.push(unmappedWater);
+            }
+            
+        }
+    }
+    return water;
+}*/

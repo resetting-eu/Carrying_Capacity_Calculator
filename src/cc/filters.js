@@ -19,34 +19,32 @@ function filterFeatures(features, bounds){
     for (let feature of features) {
         if(isBuilding(feature))
             filteredFeatures.buildings.push(feature);
-        else if(isWater(feature))
+        if(isWater(feature))
             filteredFeatures.waterBodies.push(turf.intersect(feature, bounds));
-        else if(isRoad(feature))
+        if(isRoad(feature))
             filteredFeatures.roads.push(feature);
-        else if(isRailway(feature))
+        if(isRailway(feature))
             filteredFeatures.railways.push(feature);
-        else if(isBridge(feature))
+        if(isBridge(feature))
             filteredFeatures.bridges.push(feature);
-        else if(isRestrictedArea(feature))
+        if(isRestrictedArea(feature))
             filteredFeatures.restrictedAreas.push(feature);
-        else if(isBench(feature))
+        if(isBench(feature))
             filteredFeatures.benches.push(feature);
-        else if(isTree(feature))
+        if(isTree(feature))
             filteredFeatures.trees.push(feature);
-        else if(isSmallMonument(feature))
+        if(isSmallMonument(feature))
             filteredFeatures.smallMonuments.push(feature);
-        else if(isGrass(feature))
+        if(isGrass(feature))
             filteredFeatures.grass.push(feature);
-        else if(isBarrier(feature))
+        if(isBarrier(feature))
             filteredFeatures.barriers.push(feature);
-        else if(isBoundary(feature))
+        if(isBoundary(feature))
             filteredFeatures.boundaries.push(feature);
-        else if(isLand(feature))
+        if(isLand(feature))
             filteredFeatures.land.push(feature);
-        else if(isCoastline(feature))
+        if(isCoastline(feature))
             filteredFeatures.coastlines.push(feature);
-
-
     }
 
     return filteredFeatures;
@@ -88,7 +86,9 @@ function isWater(feature){
 	feature.properties.natural == "bay" ||
 	feature.properties.natural	== "strait" ||
     feature.properties.natural	== "wetlands" ||
-    feature.properties.natural	== "mud" ) && 
+    feature.properties.natural	== "mud" ||
+    feature.properties.natural	== "shoal" ||
+    feature.properties.waterway) && 
     isPolygon(feature); 
 }
 
@@ -112,8 +112,7 @@ function isSmallMonument(feature){
     return (feature.properties.artwork_type ||
     feature.properties.tourism == "artwork" ||
     feature.properties.historic == "monument" ||
-    feature.properties.historic == "memorial") &&
-    isPoint(feature);
+    feature.properties.historic == "memorial");
 }
 
 function isGrass(feature){
@@ -129,11 +128,14 @@ function isRestrictedArea(feature){
 
 function isBarrier(feature){
     return feature.properties.barrier &&
-    feature.properties.barrier != "kerb";
+    feature.properties.barrier != "kerb" &&
+    !isPolygon(feature);
 }
 
 function isBoundary(feature){
-    return feature.properties.boundary == "administrative";
+    return feature.properties.boundary &&
+    feature.properties.boundary == "administrative" &&
+    isPolygon(feature);
 }
 
 function isAboveGround(feature){
@@ -149,7 +151,8 @@ function isLand(feature){
 }
 
 function isCoastline(feature){
-    return feature.properties.natural == "coastline"
+    return feature.properties.natural &&
+    feature.properties.natural === "coastline";
 }
 
 // Geometry type filters
