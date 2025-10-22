@@ -387,10 +387,12 @@ function bindPopup(e, context, writable) {
       info += '<input id="upload-geometries-input" type="file" accept=".json,.geojson" style="display:none"/>'
       info += '</div>'
 
+      info += '<div id="custom-features-flag" style="font-size: 10px" class="center ">'
       customFeatures = context.storage.get("custom_features_" + id);
       if(customFeatures){
-        info += '<div> Custom features uploaded</div>'
+        info += "Custom features uploaded  ";
       }
+      info +=`<i class="fa-solid fa-xmark delete-invert ${customFeatures ? "" : "hide"}" id="remove-custom-features"></i></div>`
 
       info += '<button type="button" style="margin:5px" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)

@@ -41,8 +41,6 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     let barriers = filteredFeatures.barriers;
     let land = filteredFeatures.land;
     let coastlines = filteredFeatures.coastlines;
-    
-    let bridges = filteredFeatures.bridges;
     let boundaries = filteredFeatures.boundaries;
     
     if(WALKABLE_ROADS){
