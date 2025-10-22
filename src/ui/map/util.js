@@ -385,14 +385,18 @@ function bindPopup(e, context, writable) {
       info += '<div> <input type="checkbox" id="grass" name="grass" /> <label for="grass">Classify grass as unwalkable</label></div>'
       info += '<div class="center " style="padding-top:5px"><button type="button" id="upload-geometries" class="minor">Upload custom data</button></div>'
       info += '<input id="upload-geometries-input" type="file" accept=".json,.geojson" style="display:none"/>'
-      info += '</div>'
-
-      info += '<div id="custom-features-flag" style="font-size: 10px" class="center ">'
-      customFeatures = context.storage.get("custom_features_" + id);
-      if(customFeatures){
-        info += "Custom features uploaded  ";
-      }
-      info +=`<i class="fa-solid fa-xmark delete-invert ${customFeatures ? "" : "hide"}" id="remove-custom-features"></i></div>`
+      
+      const customFeatures = context.storage.get("custom_features_" + id);
+      info += `<div id="custom-features-flag-${id}" style="font-size: 10px" class="center ${customFeatures ? '':'hide'}">Custom features uploaded` 
+      info+=`
+        <i
+          id="remove-custom-features-${id}"
+          class="fa-solid fa-xmark"
+          style="color:red">
+        </i>
+      `
+      info += "</div>";
+      info += '</div>';
 
       info += '<button type="button" style="margin:5px" class="major calculate-carrying-capacity-button';
       if(walkable_meters !== undefined)

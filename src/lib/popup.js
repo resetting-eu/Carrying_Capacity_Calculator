@@ -42,11 +42,12 @@ module.exports = function (context) {
     sel.select('#download-geojson').on('click', downloadGeoJSON);
     sel.select('#download-csv').on('click', downloadCSV);
     sel.select('#upload-geometries').on('click', uploadData);
-    sel.select('#remove-custom-features').on('click', removeCustomFeatures);
-
+    
     const data = context.data.get('map');
     const feature = data.features[id];
     const id_hash = featureHash(feature);
+
+    sel.select("#remove-custom-features-"+id_hash).on("click",removeCustomFeatures);
     
     renderMetadata();
 
@@ -486,12 +487,14 @@ module.exports = function (context) {
         reader.onload = function(e) {
           context.storage.set("custom_features_" + id_hash, JSON.parse(e.target.result));
           console.log('File content:', e.target.result);
-          sel.select("#custom-features-flag").text("Custom features uploaded");
+          sel.select("#custom-features-flag-"+id_hash).classed("hide", false);
         };
 
         reader.onerror = function(e) {
           console.error('Error reading file:', e);
         };
+
+        reader.readAsText(file);
       });
       fileInput.click()
     }
@@ -574,7 +577,9 @@ ecc,${Math.round(ecc)},\n`;
       const data = context.data.get('map');
       const feature = data.features[id];
       const id_hash = featureHash(feature);
-      delete context.storage["custom_features_"+id_hash];
+      context.storage.set("custom_features_"+id_hash, null);
+      console.log(context.storage.get("custom_features_"+id_hash));
+      sel.select('#custom-features-flag-'+id_hash).classed("hide", true);
     }
 
     function losslessNumber(x) {
