@@ -20,7 +20,7 @@ function filterFeatures(features, bounds){
         if(isBuilding(feature))
             filteredFeatures.buildings.push(feature);
         if(isWater(feature))
-            filteredFeatures.waterBodies.push(turf.intersect(feature, bounds));
+            filteredFeatures.waterBodies.push(turf.intersect(turf.featureCollection([feature, bounds])));
         if(isRoad(feature))
             filteredFeatures.roads.push(feature);
         if(isRailway(feature))

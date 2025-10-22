@@ -17,12 +17,14 @@ function addBufferMany(features, value){
 }
 
 //bulk functions
+function difference(feature1, feature2){
+    return turf.difference(turf.featureCollection([feature1, feature2]));
+}
+
 function differenceMany(feature, features){
-    let diff = feature;
-    for(let f of features){
-        diff = turf.difference(diff, f);
-    } 
-    return diff;
+    if (features.length == 0)
+        return feature;
+    return turf.difference(turf.featureCollection([feature, ...features]));
 }
 
 function unionMany(feature, features){
@@ -34,11 +36,7 @@ function unionMany(feature, features){
 }
 
 function unionArray(features){
-    let union = features.shift();
-    for(let f of features){
-        union = turf.union(union, f);
-    }
-    return union;
+    return turf.union(turf.featureCollection(features));
 }
 
 function divideArea(bounds, numAreas, horizontal=true){
@@ -75,7 +73,7 @@ function divideArea(bounds, numAreas, horizontal=true){
         }
         
         let subArea = addBuffer(turf.polygon(points), 0.01);
-        subAreas.push(turf.intersect(subArea, bounds));
+        subAreas.push(turf.intersect(turf.featureCollection([subArea, bounds])));
     }
 
     return subAreas;

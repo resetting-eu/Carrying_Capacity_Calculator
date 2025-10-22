@@ -80,7 +80,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
     }
     else if(coastlines.length > 0 ){
         if(!turf.booleanWithin(bounds, boundaries[boundaries.length-1])){
-            let unmappedWater = turf.difference(bounds, boundaries[boundaries.length-1]);
+            let unmappedWater = difference(bounds, boundaries[boundaries.length-1]);
             waterBodies.push(unmappedWater);
         }
     }
@@ -115,7 +115,7 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
 
     for(let f of unwalkablePolygons){
         try{
-            let diff = turf.difference(walkableAreaPolygon, f); 
+            let diff = difference(walkableAreaPolygon, f); 
             if(diff === null)
                 diff = addBuffer(turf.centroid(bounds), 0.01);
             walkableAreaPolygon = diff;

@@ -1,4 +1,4 @@
-importScripts("turf.js", "cc.js");
+importScripts("turf.min.js", "cc.js");
 onmessage = function (event) {
     console.log('Started worker');
   
