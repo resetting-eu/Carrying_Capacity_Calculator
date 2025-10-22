@@ -79,8 +79,8 @@ function walkableArea(features, bounds, options={}, workerId, progressCallback,
         }
     }
     else if(coastlines.length > 0 ){
-        if(!turf.booleanWithin(bounds, boundaries[boundaries.length-1])){
-            let unmappedWater = turf.difference(bounds, boundaries[boundaries.length-1]);
+        if(!turf.booleanWithin(bounds, boundaries[0])){
+            let unmappedWater = turf.difference(bounds, boundaries[0]);
             waterBodies.push(unmappedWater);
         }
     }
