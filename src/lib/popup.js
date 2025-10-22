@@ -75,7 +75,7 @@ module.exports = function (context) {
       const query_old = `[out:json][timeout:90];(nwr(${bbox_str}););(._;>;);out;`;
       const query = `[out:json][timeout:90];nwr[boundary!~"timezone"][!route](${bbox_str});(._;>;);out;`;
       const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
-
+      console.log("Starting OSM data download...");
       fetch(overpassEndpoint, {
         method: 'POST',
         headers: {
@@ -94,8 +94,7 @@ module.exports = function (context) {
 
         const osm_geojson = osmtogeojson(j);
         console.log("OSM data downloaded");
-        console.log("Number of features: " + osm_geojson.features.length);
-        console.log(osm_geojson.features);
+        console.log("Number of OSM features: " + osm_geojson.features.length);
         sel.select("#calculating-" + id_hash).text("Starting calculations...");
 
         const grass = sel.select(".calculate-carrying-capacity-button");
@@ -495,6 +494,7 @@ module.exports = function (context) {
         };
 
         reader.readAsText(file);
+        fileInput.value = '';
       });
       fileInput.click()
     }
