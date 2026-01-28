@@ -109081,7 +109081,10 @@
 	      })
 	      .then(response => {
 	        if (!response.ok) {
-	          alert(`Error on calling Overpass API: ${response.status}\n\nTry again later`);
+	          //alert(`Error on calling Overpass API: ${response.status}\n\nTry again later`);
+	          setTimeout(() => {
+	            calculateWalkableArea();
+	          }, 3000);
 	          throw new Error(`HTTP error on overpass call! Status: ${response.status}`);
 	        }
 	        return response.json();
@@ -110561,7 +110564,7 @@ ecc,${Math.round(ecc)},\n`	;
 	  closeBtn.style.position = 'absolute';
 	  closeBtn.style.right = '5px';
 	  closeBtn.style.top = '5px';
-	  closeBtn.style.fontSize = '18px';
+	  closeBtn.style.fontSize = '20px';
 	  closeBtn.style.background = 'transparent';
 	  closeBtn.style.border = 'none';
 	  closeBtn.style.cursor = 'pointer';
@@ -166229,7 +166232,7 @@ DECKGL_FILTER_COLOR(fragColor, geometry);
 
 	  function map() {
 	    mapboxgl.accessToken =
-	      'pk.eyJ1Ijoic3ZjLW9rdGEtbWFwYm94LXN0YWZmLWFjY2VzcyIsImEiOiJjbG5sMnExa3kxNTJtMmtsODJld24yNGJlIn0.RQ4CHchAYPJQZSiUJ0O3VQ';
+	      'pk.eyJ1IjoiZHVhcnRlLWFsbWVpZGEiLCJhIjoiY21rdjF4dWw1MDFieTNlcXpxdXE1bWtodSJ9.alDqGy9eQWvEP1L_Oj5UVQ';
 
 	    mapboxgl.setRTLTextPlugin(
 	      'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js',

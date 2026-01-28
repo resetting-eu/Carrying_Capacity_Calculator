@@ -85,7 +85,10 @@ module.exports = function (context) {
       })
       .then(response => {
         if (!response.ok) {
-          alert(`Error on calling Overpass API: ${response.status}\n\nTry again later`);
+          console.log(`Error on calling Overpass API: ${response.status}\n\nTrying again in 3 seconds...`);
+          setTimeout(() => {
+            calculateWalkableArea();
+          }, 3000);
           throw new Error(`HTTP error on overpass call! Status: ${response.status}`);
         }
         return response.json();
