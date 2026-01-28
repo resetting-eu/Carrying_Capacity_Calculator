@@ -109081,7 +109081,7 @@
 	      })
 	      .then(response => {
 	        if (!response.ok) {
-	          //alert(`Error on calling Overpass API: ${response.status}\n\nTry again later`);
+	          console.log(`Error on calling Overpass API: ${response.status}\n\nTrying again in 3 seconds...`);
 	          setTimeout(() => {
 	            calculateWalkableArea();
 	          }, 3000);
@@ -166232,7 +166232,7 @@ DECKGL_FILTER_COLOR(fragColor, geometry);
 
 	  function map() {
 	    mapboxgl.accessToken =
-	      'pk.eyJ1IjoiZHVhcnRlLWFsbWVpZGEiLCJhIjoiY21rdjF4dWw1MDFieTNlcXpxdXE1bWtodSJ9.alDqGy9eQWvEP1L_Oj5UVQ';
+	      'pk.eyJ1IjoiZHVhcnRlLWFsbWVpZGEiLCJhIjoiY21reWN5bjc2MDU1MjNmczZjNWZvNGRiOSJ9.-DLQdzzkjpHl_hol5XOBLA';
 
 	    mapboxgl.setRTLTextPlugin(
 	      'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js',
