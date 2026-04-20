@@ -23,7 +23,7 @@ function filterFeatures(features, bounds){
     };
 
     for (const feature of features) {
-        if(!isAboveGround(feature))
+        if(!isGroundLevel(feature))
             continue;
 
         if(isBuilding(feature))
@@ -79,7 +79,6 @@ function isRoad(feature){
     feature.properties.highway != "cycleway" && // Debatable...
     feature.properties.highway != "path" &&
     feature.properties.highway != "living_street" && // living street should not be congested
-    isAboveGround(feature) &&
     isLine(feature);
 }
 
@@ -87,21 +86,20 @@ function isRailway(feature){
     return feature.properties.railway && 
     feature.properties.railway != "razed" && 
     feature.properties.railway != "abandoned" &&
-	isAboveGround(feature) &&
     isLine(feature);
 }
 
 function isParkingArea(feature){   
-    return (feature.properties.amenity == "motorcycle_parking" ||  
-    feature.properties.amenity == "bicycle_parking" ||
-    feature.properties.amenity == "parking") &&
+    return (feature.properties.amenity === "motorcycle_parking" ||  
+    feature.properties.amenity === "bicycle_parking" ||
+    feature.properties.amenity === "parking") &&
     feature.properties.parking !== "underground" &&
     isPolygon(feature);
 }
 
 function isBuilding(feature){   
     return feature.properties.building &&
-    isAboveGround(feature) &&
+    feature.properties.building !== "roof" &&
     isPolygon(feature);
 }
 
@@ -126,7 +124,10 @@ function isWater(feature){
 }
 
 function isBridge(feature){
-    return feature.properties.man_made == "bridge" && 
+    return (
+        feature.properties.man_made == "bridge" || 
+        feature.properties.bridge
+    ) && 
     isPolygon(feature);
 }
 
@@ -201,9 +202,9 @@ function isBoundary(feature){
     isPolygon(feature);
 }
 
-function isAboveGround(feature){
+function isGroundLevel(feature){
     if(feature.properties.layer)
-        return parseInt(feature.properties.layer) > -1;
+        return parseInt(feature.properties.layer) === 0;
     return true;
 }
 
