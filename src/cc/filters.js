@@ -79,6 +79,7 @@ function isRoad(feature){
     feature.properties.highway != "cycleway" && // Debatable...
     feature.properties.highway != "path" &&
     feature.properties.highway != "living_street" && // living street should not be congested
+    feature.properties.highway != "platform" && // 
     isLine(feature);
 }
 
@@ -103,11 +104,25 @@ function isBuilding(feature){
     isPolygon(feature);
 }
 
+function isWalkable(feature){
+    return feature.properties.highway &&
+    (feature.properties.highway === "pedestrian" ||
+    feature.properties.foot === "designated" ||
+    feature.properties.footway ||
+    feature.properties.highway === "footway" ||
+    feature.properties.highway === "steps" ||
+    //feature.properties.highway === "cycleway" || 
+    feature.properties.highway === "path" ||
+    feature.properties.highway === "living_street" ||
+    feature.properties.highway === "platform") 
+}
+
 function isWalkableArea(feature){
-    return (feature.properties.highway == "pedestrian" ||
-    feature.properties.foot == "designated" ||
-    feature.properties.footway) &&
-    isPolygon(feature);
+    return isWalkable(feature) && isPolygon(feature);
+}
+
+function isWalkablePath(feature){
+    return isWalkable(feature) && isLine(feature);
 }
 
 function isWater(feature){
@@ -176,7 +191,6 @@ function isPrivateArea(feature){
     feature.properties.amenity == "prison" ||
     feature.properties.barrier||
     isPlot(feature)) &&  
-    isAboveGround(feature) &&
     isPolygon(feature);
 }
 
