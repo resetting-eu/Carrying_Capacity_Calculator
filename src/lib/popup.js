@@ -110,6 +110,7 @@ module.exports = function (context) {
           unwalkableGrass: sel.select("#grass").node().checked,
           walkablePrivateAreas: sel.select("#private-areas").node().checked,
           walkableParkingAreas: sel.select("#parking").node().checked,
+          calculateFromWalkableFeatures: sel.select("#walkable-features").node().checked,
           customFeatures: custom_features
         };
 

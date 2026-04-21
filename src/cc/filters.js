@@ -19,7 +19,9 @@ function filterFeatures(features, bounds){
         plots:[],
         flowerbeds:[],
         privateAreas: [],
-        walkableAreas: []
+
+        walkableAreas: [],
+        walkablePaths: []
     };
 
     for (const feature of features) {
@@ -62,6 +64,8 @@ function filterFeatures(features, bounds){
             filteredFeatures.flowerbeds.push(feature);  
         if(isWalkableArea(feature))
             filteredFeatures.walkableAreas.push(feature);
+        if(isWalkablePath(feature))
+            filteredFeatures.walkablePaths.push(feature);
     }
 
     return filteredFeatures;
@@ -114,11 +118,16 @@ function isWalkable(feature){
     //feature.properties.highway === "cycleway" || 
     feature.properties.highway === "path" ||
     feature.properties.highway === "living_street" ||
-    feature.properties.highway === "platform") 
+    feature.properties.highway === "platform" ||
+    feature.properties.highway === "track") 
 }
 
 function isWalkableArea(feature){
-    return isWalkable(feature) && isPolygon(feature);
+    return (
+        isWalkable(feature) ||
+        feature.properties.place === "square" ||
+        feature.properties.landuse === "recreation_ground" 
+    ) && isPolygon(feature);
 }
 
 function isWalkablePath(feature){

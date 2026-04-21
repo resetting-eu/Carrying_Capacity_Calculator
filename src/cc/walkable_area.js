@@ -1,4 +1,4 @@
-
+// Calculate walkable area from unwalkable features
 function walkableArea(features, bounds, options={}){
 
     let LANE_WIDTH = 3;
@@ -143,6 +143,23 @@ function walkableArea(features, bounds, options={}){
     return truncateGeoJSON(walkableAreaPolygon);
 }
 
+// Calculate walkable area from walkable features
+function walkablePathsArea(features, bounds, options={}){
+    const ROAD_WIDTH = 3
+    const PATH_WIDTH = 2
+    //const STAIRS_WIDTH = 2
+
+    let filteredFeatures = filterFeatures(features, bounds);
+
+    let roads = processRoads(filteredFeatures.roads, ROAD_WIDTH, 0, 0);
+    let walkablePaths = addBufferMany(filteredFeatures.walkableAreas, PATH_WIDTH / 2);
+    let walkableAreas = filteredFeatures.walkableAreas + walkablePaths + roads;
+
+    return unionArray(walkableAreas);
+    
+}
+
+
 function walkableAreaWithSubAreas(features, bounds, options, workerId){
     bounds_area = turf.area(bounds);
     numDivisions = Math.ceil(bounds_area/100000);
@@ -152,7 +169,7 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
     let subAreaFeatures = [];
     let totalPolygons = 0;
 
-    let unwalkablePolygons = [];
+    let walkablePolygons = [];
     
     for(let subArea of subAreas){
         let subFeatures = [];
@@ -164,9 +181,16 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
         subAreaFeatures.push(subFeatures);
         //totalPolygons += subFeatures.length;
     }
-    progress = {"totalPolygons":totalPolygons,"processedPolygons": 0};
+    //progress = {"totalPolygons":totalPolygons,"processedPolygons": 0};
+    let walkableAreaFunction;
+    if(options.algorithm && options.algorithm === 2){
+        walkableAreaFunction = walkablePathsArea;
+    }else{
+        walkableAreaFunction = walkableArea;
+    }
+
     for(let i = 0; i < subAreas.length; i++){
-        unwalkablePolygons.push(walkableArea(subAreaFeatures[i], subAreas[i], options));
+        walkablePolygons.push(walkableAreaFunction(subAreaFeatures[i], subAreas[i], options));
         if(workerId !== undefined && workerId !== null) {
             postMessage({progress: true, processedPolygons:i+1, totalPolygons:subAreas.length, workerId});
         } 
@@ -174,18 +198,16 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
 
     results = [];
     try{
-        results = unionArray(unwalkablePolygons);
+        results = unionArray(walkablePolygons);
     }catch(e){
         console.log("Error on union... trying again");
         console.log(e);
-        unwalkablePolygons = addBufferMany(unwalkablePolygons, 0.1);
+        walkablePolygons = addBufferMany(walkablePolygons, 0.1);
         try{
-            results = unionArray(unwalkablePolygons);
+            results = unionArray(walkablePolygons);
         }catch(e1){
             console.log(e1);
         }
     }
     return results;
 }
-
-
