@@ -145,17 +145,16 @@ function walkableArea(features, bounds, options={}){
 
 // Calculate walkable area from walkable features
 function walkablePathsArea(features, bounds, options={}){
-    const ROAD_WIDTH = 3
-    const PATH_WIDTH = 2
+    const ROAD_WIDTH = 5.5;
+    const PATH_WIDTH = 3;
     //const STAIRS_WIDTH = 2
 
-    let filteredFeatures = filterFeatures(features, bounds);
+    let filteredFeatures = filterFeatures(features, bounds, only_surface=false);
 
     let roads = processRoads(filteredFeatures.roads, ROAD_WIDTH, 0, 0);
-    let walkablePaths = addBufferMany(filteredFeatures.walkableAreas, PATH_WIDTH / 2);
-    let walkableAreas = filteredFeatures.walkableAreas + walkablePaths + roads;
-
-    return unionArray(walkableAreas);
+    let walkablePaths = addBufferMany(filteredFeatures.walkablePaths, PATH_WIDTH / 2);
+    let walkableAreas = filteredFeatures.walkableAreas.concat(walkablePaths, roads);
+    return turf.intersect(unionArray(walkableAreas), bounds);
     
 }
 
@@ -183,7 +182,8 @@ function walkableAreaWithSubAreas(features, bounds, options, workerId){
     }
     //progress = {"totalPolygons":totalPolygons,"processedPolygons": 0};
     let walkableAreaFunction;
-    if(options.algorithm && options.algorithm === 2){
+    
+    if(options.fromWalkableFeatures){
         walkableAreaFunction = walkablePathsArea;
     }else{
         walkableAreaFunction = walkableArea;

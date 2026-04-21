@@ -1,4 +1,4 @@
-function filterFeatures(features, bounds){
+function filterFeatures(features, bounds, only_surface=true){
     let filteredFeatures = {
         roads: [],
         railways: [],
@@ -25,7 +25,7 @@ function filterFeatures(features, bounds){
     };
 
     for (const feature of features) {
-        if(!isGroundLevel(feature))
+        if(only_surface && !isGroundLevel(feature))
             continue;
 
         if(isBuilding(feature))
