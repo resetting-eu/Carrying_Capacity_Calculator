@@ -11,6 +11,7 @@ function walkableArea(features, bounds, options={}){
     let WALKABLE_PARKING_AREAS = false;
     let WALKABLE_CITY_BLOCKS = false;
     let WALKABLE_PRIVATE_AREAS = false;
+    let CALCULATE_UNWALKABLE_AREA = false;
 
     if(options.laneWidth)
         LANE_WIDTH = options.laneWidth;
@@ -32,6 +33,8 @@ function walkableArea(features, bounds, options={}){
         WALKABLE_PRIVATE_AREAS = options.walkablePrivateAreas;
     if(options.walkableCityBlocks)  
         WALKABLE_CITY_BLOCKS = options.walkableCityBlocks;
+    if(options.calculateUnwalkableArea)
+        CALCULATE_UNWALKABLE_AREA = options.calculateUnwalkableArea;
 
     // Filter features
     let filteredFeatures = filterFeatures(features, bounds);
@@ -117,6 +120,27 @@ function walkableArea(features, bounds, options={}){
         
     let walkableAreaPolygon = truncateGeoJSON(bounds, 7);
 
+    if(CALCULATE_UNWALKABLE_AREA){
+        //console.log("Calculating unwalkable area...");
+        boundedUnwalkablePolygons = [];
+        for(const f of unwalkablePolygons){
+            try{
+                let intersection = turf.intersect(f, bounds);
+                if(intersection){
+                    boundedUnwalkablePolygons.push(intersection);
+                }       
+            }catch(error){
+                if (f && f.properties){
+                    console.log("Error with feature: " + f.properties); 
+                    console.log(f);
+                    console.log(error);
+                }       
+            }
+        }
+        let unwalkableAreaPolygon = unionArray(boundedUnwalkablePolygons);
+        return truncateGeoJSON(unwalkableAreaPolygon, 7);
+    }
+
     for(const f of unwalkablePolygons){
         try{
             let diff = turf.difference(walkableAreaPolygon, f); 
@@ -151,7 +175,12 @@ function walkablePathsArea(features, bounds, options={}){
 
     let filteredFeatures = filterFeatures(features, bounds, only_surface=false);
 
-    let roads = processRoads(filteredFeatures.roads, ROAD_WIDTH, 0, 0);
+    let roads = [];
+
+    if(options.walkableRoads){
+        roads = processRoads(filteredFeatures.roads, ROAD_WIDTH, 0, 0);
+    }
+
     let walkablePaths = addBufferMany(filteredFeatures.walkablePaths, PATH_WIDTH / 2);
     let walkableAreas = filteredFeatures.walkableAreas.concat(walkablePaths, roads);
     return turf.intersect(unionArray(walkableAreas), bounds);

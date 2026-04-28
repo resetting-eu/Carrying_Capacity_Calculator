@@ -111,6 +111,7 @@ module.exports = function (context) {
           walkablePrivateAreas: sel.select("#private-areas").node().checked,
           walkableParkingAreas: sel.select("#parking").node().checked,
           fromWalkableFeatures: sel.select("#walkable-features").node().checked,
+          calculateUnwalkableArea: sel.select("#unwalkable-area").node().checked,
           customFeatures: custom_features
         };
 
@@ -127,7 +128,9 @@ module.exports = function (context) {
           sel.select("#ccc-options").classed("hide", true);
           sel.select(".download").classed("hide", false);
 
-          expandMetadataWithCarryingCapacity(feature, walkable_meters);
+          if(!options.calculateUnwalkableArea){
+            expandMetadataWithCarryingCapacity(feature, walkable_meters);
+          }
 
           context.map.overlay.addFeature(context, id_hash);
           sel.select("#ccc-options").classed("hide", true);

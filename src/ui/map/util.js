@@ -387,6 +387,7 @@ function bindPopup(e, context, writable) {
       info += '<div> <input type="checkbox" id="parking" name="parking" /> <label for="parking">Classify parking areas as walkable</label></div>'
       info += '<hr style="padding-top:5px">'
       info += '<div> <input type="checkbox" id="walkable-features" name="walkable-features" /> <label for="walkable-features">Calculate from walkable features</label></div>'
+      info += '<div> <input type="checkbox" id="unwalkable-area" name="unwalkable-area" /> <label for="unwalkable-area">Calculate unwalkable area</label></div>'
       
       info += '<div class="center " style="padding-top:5px"><button type="button" id="upload-geometries" class="minor">Upload custom data</button></div>'
       info += '<input id="upload-geometries-input" type="file" accept=".json,.geojson" style="display:none"/>'

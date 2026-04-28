@@ -226,10 +226,13 @@ function isBoundary(feature){
 }
 
 function isGroundLevel(feature){
-    if(feature.properties.layer)
-        return parseInt(feature.properties.layer) === 0;
+    if(feature.properties.layer){
+        const layer = parseInt(feature.properties.layer);
+        return layer === 0 || layer === 1; 
+    }
     return true;
 }
+
 
 function isLand(feature){
     return feature.properties.place ||
