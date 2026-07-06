@@ -110401,6 +110401,7 @@ ecc,${Math.round(ecc)},\n`	;
 	      info += '<div class="center "><b>Options</b></div>';
 
 	      info += '<div> <input type="checkbox" id="buildings" name="buildings" /> <label for="buildings">Remove private building areas</label></div>';
+	      info += '<div> <input type="checkbox" id="walkable-buildings" name="walkable-buildings" /> <label for="walkable-buildings">Classify buildings as walkable</label></div>';
 	      info += '<div> <input type="checkbox" id="roads" name="roads" /> <label for="roads">Classify roads as walkable</label></div>';
 	      info += '<div> <input type="checkbox" id="grass" name="grass" /> <label for="grass">Classify grass as unwalkable</label></div>';
 	      info += '<div> <input type="checkbox" id="private-areas" name="private-areas" /> <label for="private-areas">Ignore private area restrictions</label></div>';
