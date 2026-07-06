@@ -112,6 +112,7 @@ module.exports = function (context) {
           walkableParkingAreas: sel.select("#parking").node().checked,
           fromWalkableFeatures: sel.select("#walkable-features").node().checked,
           calculateUnwalkableArea: sel.select("#unwalkable-area").node().checked,
+          walkableBuildings: sel.select("#walkable-buildings").node().checked,
           customFeatures: custom_features
         };
 

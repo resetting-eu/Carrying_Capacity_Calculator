@@ -122,7 +122,7 @@ function walkableArea(features, bounds, options={}){
 
     if(CALCULATE_UNWALKABLE_AREA){
         //console.log("Calculating unwalkable area...");
-        boundedUnwalkablePolygons = [];
+        let boundedUnwalkablePolygons = [];
         for(const f of unwalkablePolygons){
             try{
                 let intersection = turf.intersect(f, bounds);
@@ -176,13 +176,18 @@ function walkablePathsArea(features, bounds, options={}){
     let filteredFeatures = filterFeatures(features, bounds, only_surface=false);
 
     let roads = [];
+    let buildings = [];
 
     if(options.walkableRoads){
         roads = processRoads(filteredFeatures.roads, ROAD_WIDTH, 0, 0);
     }
 
+    if(options.walkableBuildings){
+        buildings = processBuildings(filteredFeatures.buildings);
+    }
+
     let walkablePaths = addBufferMany(filteredFeatures.walkablePaths, PATH_WIDTH / 2);
-    let walkableAreas = filteredFeatures.walkableAreas.concat(walkablePaths, roads);
+    let walkableAreas = filteredFeatures.walkableAreas.concat(walkablePaths, roads, buildings);
     return turf.intersect(unionArray(walkableAreas), bounds);
     
 }
