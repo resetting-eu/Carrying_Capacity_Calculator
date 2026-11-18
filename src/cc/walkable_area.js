@@ -177,6 +177,7 @@ function walkablePathsArea(features, bounds, options={}){
 
     let roads = [];
     let buildings = [];
+    let barriers = [];
 
     if(options.walkableRoads){
         roads = processRoads(filteredFeatures.roads, ROAD_WIDTH, 0, 0);
@@ -186,9 +187,12 @@ function walkablePathsArea(features, bounds, options={}){
         buildings = processBuildings(filteredFeatures.buildings);
     }
 
+    barriers = processBarriers(filteredFeatures.barriers);
+
     let walkablePaths = addBufferMany(filteredFeatures.walkablePaths, PATH_WIDTH / 2);
     let walkableAreas = filteredFeatures.walkableAreas.concat(walkablePaths, roads, buildings);
-    return turf.intersect(unionArray(walkableAreas), bounds);
+    let walkableArea = turf.intersect(unionArray(walkableAreas), bounds);
+    return turf.difference(walkableArea, unionArray(barriers));
     
 }
 
