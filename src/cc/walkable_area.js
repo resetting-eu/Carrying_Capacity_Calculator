@@ -192,7 +192,7 @@ function walkablePathsArea(features, bounds, options={}){
     let walkablePaths = addBufferMany(filteredFeatures.walkablePaths, PATH_WIDTH / 2);
     let walkableAreas = filteredFeatures.walkableAreas.concat(walkablePaths, roads, buildings);
     let walkableArea = turf.intersect(unionArray(walkableAreas), bounds);
-    return turf.difference(walkableArea, unionArray(barriers));
+    return walkableArea;
     
 }
 
