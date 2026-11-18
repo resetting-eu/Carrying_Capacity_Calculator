@@ -109,6 +109,11 @@ function isBuilding(feature){
 }
 
 function isWalkable(feature){
+    if (feature.properties.ford && feature.properties.ford === "stepping_stones") 
+        return false;
+    if (feature.properties.layer && parseInt(feature.properties.layer) < 0)
+        return false;
+
     return feature.properties.highway &&
     (feature.properties.highway === "pedestrian" ||
     feature.properties.foot === "designated" ||

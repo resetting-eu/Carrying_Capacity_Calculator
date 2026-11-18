@@ -170,7 +170,7 @@ function walkableArea(features, bounds, options={}){
 // Calculate walkable area from walkable features
 function walkablePathsArea(features, bounds, options={}){
     const ROAD_WIDTH = 5.5;
-    const PATH_WIDTH = 3;
+    const PATH_WIDTH = 4;
     //const STAIRS_WIDTH = 2
 
     let filteredFeatures = filterFeatures(features, bounds, only_surface=false);
