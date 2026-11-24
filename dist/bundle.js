@@ -71131,7 +71131,7 @@
 	      sources: {
 	        'osm-raster-tiles': {
 	          type: 'raster',
-	          tiles: ['https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+	          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
 	          tileSize: 256,
 	          attribution:
 	            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -109009,6 +109009,13 @@
 	const DEFAULT_ROTATION_FACTOR = 1;
 	const DEFAULT_CORRECTIVE_FACTORS = JSON.stringify([{name: "Corrective Factor", value: 1}]);
 	const DEFAULT_MANAGEMENT_CAPACITY = 1;
+	const DEFAULT_CALCULATION_WIDTHS = {
+	  laneWidth: 3,
+	  railWidth: 3,
+	  parallelWidth: 1.8,
+	  diagonalWidth: 5,
+	  pathWidth: 3
+	};
 	const AREA_PER_PEDESTRIAN_STORAGE_KEY = "area_per_pedestrian";
 	const ROTATION_FACTOR_STORAGE_KEY = "rotation_factor";
 	const CORRECTIVE_FACTORS_STORAGE_KEY = "corrective_factors";
@@ -109017,6 +109024,7 @@
 	var popup$1 = function (context) {
 	  return function (e, id) {
 	    const sel = d3.select(e.target._content);
+	    let calculationWidths = {...DEFAULT_CALCULATION_WIDTHS};
 
 	    sel.selectAll('.cancel').on('click', clickClose);
 
@@ -109031,6 +109039,7 @@
 	    sel.selectAll('.delete-invert').on('click', removeFeature);
 
 	    sel.select('.calculate-carrying-capacity-button').on('click', calculateWalkableArea);
+	    sel.select('.ccc-width-settings-link').on('click', openCalculationWidthSettings);
 
 	    sel.select('#area-unit-select').on('change', changeAreaUnit);
 
@@ -109101,6 +109110,7 @@
 	        let custom_features = context.storage.get("custom_features_" + id_hash);
 
 	        const options = {
+	          ...calculationWidths,
 	          flattenBuildings: sel.select("#buildings").node().checked,
 	          walkableRoads: sel.select("#roads").node().checked,
 	          unwalkableGrass: sel.select("#grass").node().checked,
@@ -109145,6 +109155,66 @@
 	        button.classed("hide", false);
 
 	        expandMetadataWithTotalArea(feature);
+	      });
+	    }
+
+	    function openCalculationWidthSettings() {
+	      const overlay = d3.select('body')
+	        .append('div')
+	        .attr('class', 'ccc-width-modal-overlay');
+	      const modal = overlay.append('div')
+	        .attr('class', 'ccc-width-modal')
+	        .attr('role', 'dialog')
+	        .attr('aria-modal', 'true')
+	        .attr('aria-labelledby', 'ccc-width-modal-title');
+
+	      modal.html(
+	        '<h2 id="ccc-width-modal-title"><strong>Calculation options</strong></h2>' +
+	        '<p>The default road and parking values are based on Lisbon\'s ' +
+	        '<a href="https://www.lisboa.pt/fileadmin/portal/temas/urbanismo/Manual_espaco_publico.pdf" target="_blank" rel="noopener noreferrer">Public Space Manual</a>. ' +
+	        'Path width can be configured separately (all values in meters).</p>' +
+	        '<form class="ccc-width-settings-form">' +
+	        '<h3 class="ccc-width-group-title">Road</h3>' +
+	        '<label for="ccc-lane-width">Road lane width</label>' +
+	        '<input id="ccc-lane-width" name="laneWidth" type="number" min="0" step="any" required value="' + calculationWidths.laneWidth + '">' +
+	        '<label for="ccc-parallel-width">Parallel parking width</label>' +
+	        '<input id="ccc-parallel-width" name="parallelWidth" type="number" min="0" step="any" required value="' + calculationWidths.parallelWidth + '">' +
+	        '<label for="ccc-diagonal-width">Diagonal parking width</label>' +
+	        '<input id="ccc-diagonal-width" name="diagonalWidth" type="number" min="0" step="any" required value="' + calculationWidths.diagonalWidth + '">' +
+	        '<h3 class="ccc-width-group-title">Rail</h3>' +
+	        '<label for="ccc-rail-width">Rail width</label>' +
+	        '<input id="ccc-rail-width" name="railWidth" type="number" min="0" step="any" required value="' + calculationWidths.railWidth + '">' +
+	        '<h3 class="ccc-width-group-title">Path</h3>' +
+	        '<label for="ccc-path-width">Path width</label>' +
+	        '<input id="ccc-path-width" name="pathWidth" type="number" min="0" step="any" required value="' + calculationWidths.pathWidth + '">' +
+	        '<div class="ccc-width-modal-actions">' +
+	        '<button type="button" class="ccc-width-settings-cancel">Cancel</button>' +
+	        '<button type="submit" class="major">Apply</button>' +
+	        '</div></form>'
+	      );
+
+	      function closeModal() {
+	        overlay.remove();
+	      }
+
+	      overlay.on('click', function () {
+	        if (d3.event.target === this) closeModal();
+	      });
+	      modal.select('.ccc-width-settings-cancel').on('click', closeModal);
+	      modal.select('form').on('submit', function () {
+	        d3.event.preventDefault();
+	        if (!this.checkValidity()) {
+	          this.reportValidity();
+	          return;
+	        }
+	        calculationWidths = {
+	          laneWidth: Number(this.elements.laneWidth.value),
+	          railWidth: Number(this.elements.railWidth.value),
+	          parallelWidth: Number(this.elements.parallelWidth.value),
+	          diagonalWidth: Number(this.elements.diagonalWidth.value),
+	          pathWidth: Number(this.elements.pathWidth.value)
+	        };
+	        closeModal();
 	      });
 	    }
 
@@ -110407,6 +110477,7 @@ ecc,${Math.round(ecc)},\n`	;
 	      info += '<div> <input type="checkbox" id="private-areas" name="private-areas" /> <label for="private-areas">Ignore private area restrictions</label></div>';
 	      info += '<div> <input type="checkbox" id="parking" name="parking" /> <label for="parking">Classify parking areas as walkable</label></div>';
 	      info += '<hr style="padding-top:5px">';
+	      info += '<div><button type="button" class="ccc-width-settings-link">Configure calculation widths</button> (meters)</div>';
 	      info += '<div> <input type="checkbox" id="walkable-features" name="walkable-features" /> <label for="walkable-features">Calculate from walkable features</label></div>';
 	      info += '<div> <input type="checkbox" id="unwalkable-area" name="unwalkable-area" /> <label for="unwalkable-area">Calculate unwalkable area</label></div>';
 	      

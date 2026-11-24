@@ -13,13 +13,13 @@ function walkableArea(features, bounds, options={}){
     let WALKABLE_PRIVATE_AREAS = false;
     let CALCULATE_UNWALKABLE_AREA = false;
 
-    if(options.laneWidth)
+    if(options.laneWidth !== undefined)
         LANE_WIDTH = options.laneWidth;
-    if(options.railWidth)
+    if(options.railWidth !== undefined)
         RAIL_WIDTH = options.railWidth;
-    if(options.parallelWidth)
+    if(options.parallelWidth !== undefined)
         PARALLEL_PARKING_WIDTH = options.parallelWidth;
-    if(options.diagonalWidth)
+    if(options.diagonalWidth !== undefined)
         DIAGONAL_PARKING_WIDTH = options.diagonalWidth;
     if(options.flattenBuildings)
         REMOVE_BUILDING_INNER_RINGS = options.flattenBuildings;
@@ -169,8 +169,13 @@ function walkableArea(features, bounds, options={}){
 
 // Calculate walkable area from walkable features
 function walkablePathsArea(features, bounds, options={}){
-    const ROAD_WIDTH = 5.5;
-    const PATH_WIDTH = 4;
+    let ROAD_WIDTH = 5.5;
+    let PATH_WIDTH = 3;
+    if(options.pathWidth !== undefined)
+        PATH_WIDTH = options.pathWidth;
+    if(options.laneWidth !== undefined)
+        ROAD_WIDTH = options.laneWidth;
+
     //const STAIRS_WIDTH = 2
 
     let filteredFeatures = filterFeatures(features, bounds, only_surface=false);

@@ -3,17 +3,17 @@ const turf = require('@turf/turf');
 function calculateCarryingCapacity(features, bounds, options, workerId, progressCallback){
     let LANE_WIDTH = 3;
     let RAIL_WIDTH = 3;
-    let PARALLEL_PARKING_WIDTH = 2;
+    let PARALLEL_PARKING_WIDTH = 1.8;
     let DIAGONAL_PARKING_WIDTH = 5;
     let FLATTEN_MULTIPOLYGONS_BUILDING = false;
 
-    if(options.laneWidth)
+    if(options.laneWidth !== undefined)
         LANE_WIDTH = options.laneWidth;
-    if(options.railWidth)
+    if(options.railWidth !== undefined)
         RAIL_WIDTH = options.railWidth;
-    if(options.parallelWidth)
+    if(options.parallelWidth !== undefined)
         PARALLEL_PARKING_WIDTH = options.parallelWidth;
-    if(options.diagonalWidth)
+    if(options.diagonalWidth !== undefined)
         DIAGONAL_PARKING_WIDTH = options.diagonalWidth;
 
     // Filter features

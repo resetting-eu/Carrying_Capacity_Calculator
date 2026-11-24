@@ -387,6 +387,7 @@ function bindPopup(e, context, writable) {
       info += '<div> <input type="checkbox" id="private-areas" name="private-areas" /> <label for="private-areas">Ignore private area restrictions</label></div>'
       info += '<div> <input type="checkbox" id="parking" name="parking" /> <label for="parking">Classify parking areas as walkable</label></div>'
       info += '<hr style="padding-top:5px">'
+      info += '<div><button type="button" class="ccc-width-settings-link">Configure calculation widths</button> (meters)</div>'
       info += '<div> <input type="checkbox" id="walkable-features" name="walkable-features" /> <label for="walkable-features">Calculate from walkable features</label></div>'
       info += '<div> <input type="checkbox" id="unwalkable-area" name="unwalkable-area" /> <label for="unwalkable-area">Calculate unwalkable area</label></div>'
       
